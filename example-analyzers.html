@@ -9,8 +9,8 @@
 <script type="text/javascript" src="src/unicode/unicode.js"></script>
 <script type="text/javascript" src="src/analyzers.js"></script>
 <script type="text/javascript" src="src/normalizers.js"></script>
-<script type="text/javascript" src="src/normalizers/normalizers-english.js"></script>
-<script type="text/javascript" src="src/normalizers/normalizers-french.js"></script>
+<script type="text/javascript" src="src/normalizers/english/porter-stemmer.js"></script>
+<script type="text/javascript" src="src/normalizers/french/simpleform.js"></script>
 <style TYPE="text/css">
 
 div.floatbox {
@@ -66,11 +66,11 @@ $(document).ready(function() {
        	    },
        	    {
        	    	label: "Standard parser + lowercase + english porter stemmer",
-       	    	parser: new fullproof.StandardAnalyzer([fullproof.normalizer.to_lowercase_nomark,fullproof.normalizer.english.porter_stemmer])
+       	    	parser: new fullproof.StandardAnalyzer([fullproof.normalizer.to_lowercase_nomark,fullproof.english.porter_stemmer])
        	    },
        	    {
        	    	label: "Standard parser + lowercase + french stemmer",
-       	    	parser: new fullproof.StandardAnalyzer([fullproof.normalizer.to_lowercase_nomark,fullproof.normalizer.french.simple_stemmer])
+       	    	parser: new fullproof.StandardAnalyzer([fullproof.normalizer.to_lowercase_nomark,fullproof.french.simpleform])
        	    }
 	];
 

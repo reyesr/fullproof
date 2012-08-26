@@ -38,7 +38,7 @@ fullproof.store = (function(NAMESPACE) {
 		};
 		
 		this.lookup = function(word, callback) {
-			callback(this.data[word]?this.data[word]:new fullproof.ResultSet);
+			callback(this.data[word]?this.data[word].clone():new fullproof.ResultSet);
 			return this;
 		};
 		

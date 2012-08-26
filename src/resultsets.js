@@ -119,6 +119,8 @@ fullproof = (function(NAMESPACE) {
 					}
 				}
 				data = result;
+				this.EXPOSED_REMOVED = data;
+				
 			}
 			return this;
 		};
@@ -149,8 +151,10 @@ fullproof = (function(NAMESPACE) {
 					}
 				}
 				data = result;
+				this.EXPOSED_REMOVED = data;
 			} else {
 				data = [];
+				this.EXPOSED_REMOVED = data;
 			}
 			return this;
 		}
@@ -180,8 +184,10 @@ fullproof = (function(NAMESPACE) {
 					}
 				}
 				data = result;
+				this.EXPOSED_REMOVED = data;
 			} else {
 				data = [];
+				this.EXPOSED_REMOVED = data;
 			}
 			
 			return this;
@@ -193,6 +199,7 @@ fullproof = (function(NAMESPACE) {
 		this.setDataUnsafe = function(sorted_array) {
 			last_insert = undefined;
 			data = sorted_array;
+			this.EXPOSED_REMOVED = data;
 			return this;
 		}
 		
@@ -204,6 +211,16 @@ fullproof = (function(NAMESPACE) {
 			for (var i=0,max=data.length; i<max; ++i) {
 				callback(data[i]);
 			}
+		}
+
+		this.getSize = function() {
+			return data.length;
+		}
+		
+		this.clone = function() {
+			var clone = new NAMESPACE.ResultSet;
+			clone.setDataUnsafe(data.slice(0));
+			return clone;
 		}
 		
 	};

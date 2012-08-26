@@ -12,6 +12,7 @@
 <script type="text/javascript" src="src/store/websql_store.js"></script>
 <script type="text/javascript" src="src/analyzers.js"></script>
 <script type="text/javascript" src="src/normalizers.js"></script>
+<script type="text/javascript" src="src/resultsets.js"></script>
 
 <style TYPE="text/css">
 
@@ -162,7 +163,7 @@ $(document).ready(function() {
 				o.parser.parse(value, function(word) {
 					var set = o.engine.lookup(word, function(data) {
 						if (data) {
-							ilog += "found "+word+" on lines: " + data.join(",");
+							ilog += "found "+word+" on lines: " + data.toString();
 							console.log(data);
 						} else {
 							ilog += "Not found: the database is empty or the word is not contained";

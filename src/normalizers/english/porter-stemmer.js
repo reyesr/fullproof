@@ -1,5 +1,4 @@
-var fullproof = fullproof || {};
-fullproof.normalizer = (function(NAMESPACE) {
+var fullproof = (function(NAMESPACE) {
 	
 	NAMESPACE.english = NAMESPACE.english|| {};
 
@@ -279,5 +278,5 @@ fullproof.normalizer = (function(NAMESPACE) {
 	};
 	
 	return NAMESPACE;
-	
-})(fullproof.normalizer||{});
+})(fullproof||{});
+
