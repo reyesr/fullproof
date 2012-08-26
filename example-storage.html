@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Javascript Search Engine : parser testing</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+
+<script type="text/javascript" src="src/unicode/categ_letters_numbers.js"></script>
+<script type="text/javascript" src="src/unicode/normalizer_lowercase_nomark.js"></script>
+<script type="text/javascript" src="src/unicode/unicode.js"></script>
+<script type="text/javascript" src="src/store/memory_store.js"></script>
+<script type="text/javascript" src="src/store/websql_store.js"></script>
+<script type="text/javascript" src="src/analyzers.js"></script>
+<script type="text/javascript" src="src/normalizers.js"></script>
+
+<style TYPE="text/css">
+
+div.floatbox {
+	float:left; width: 300px;
+}
+div.resultbox {
+	border: 1px solid black; margin:0.5em;
+	color: black; background-color: #EEEEEE;
+	overflow: hidden;
+}
+textarea.typebox {
+	float: left;
+	width: 300px; height: 200px; margin:1em;"
+	color: black; background-color: white;
+}
+</style>
+</head>
+<body>
+<h1>Testing storage engines</h1>
+
+Search engines need to store their data, mainly a set of indexes, On the client-side, things get
+at little complicated, specially on devices with little memory or bad/old browsers. Here are the
+different storage engines supported by the library.
+<ul>
+<li><em>memory index</em>: stores all the data in memory (actually a javascript object). The advantages of 
+this index are compatibility with all browser, and obviously its speed. However, the index needs to be
+built every time the application loads, and it consumes as much memory as the database size itself.</li>
+
+<li><em>websql</em>: This is a disk-based index based on the deprecated websql api. It's main drawback is that
+it is only supported on a few browsers, and it's not developped anymore.</li>
+
+<li><em>indexeddb</em></li>
+
+</ul> 
+
+You can try to store data by typing text here: every non-blank line will be indexed as a document, 
+the key is the line number.
+
+<div>
+	<textarea id="typehere" class="typebox">première ligne
+deuxième ligne
+troisième ligne
+	</textarea>
+	<div style="float:left; min-width: 10em; margin: 2em;">
+		<div><button id="action" > STORE &gt;&gt; </button></div>
+		<div style="margin-top:2em;">Search a word:<input id="search" type="text" /></div>
+		<div><button id="lookup" > SEARCH &gt;&gt; </button></div>
+	</div>
+	<div class="floatbox">Analysis<div class="resultbox" id="analysis" ></div></div>
+</div>
+<div style="clear:both" id="results">
+</div>
+
+<script type="text/javascript">
+
+
+console.log("TESTS");
+console.log(window);
+console.log(window.indexedDB);
+if (window.indexedDB) {
+	console.log("ok");
+}
+
+$(document).ready(function() {
+
+	var parser_for_all = new fullproof.StandardAnalyzer([fullproof.normalizer.to_lowercase_nomark, fullproof.normalizer.remove_duplicate_letters]);
+	
+	var under_test = [
+       	    {
+       	    	label: "memory parser",
+       	    	engine: new fullproof.store.MemoryStore(),
+       	    	parser: parser_for_all
+       	    },
+        	    {
+       	    	label: "websql parser",
+       	    	engine: (function() {
+       	    		var e = new fullproof.store.WebSQLStore();
+       	    		e.open("testsearch", "ind1", 1024*1024*20, function() {
+       	    			// do something
+       	    			console.log(arguments);
+       	    		});
+       	    		return e;
+       	    	})(),
+       	    	parser: parser_for_all
+       	    }
+/*        	    {
+       	    	label: "Standard parser + lowercase + english porter stemmer",
+       	    	func: gluedom(net.kornr.searchengine.parser.parse, [net.kornr.searchengine.normalizer.to_lowercase_nomark,net.kornr.searchengine.normalizer.english.porter_stemmer])
+       	    },
+       	    {
+       	    	label: "Standard parser + lowercase + french stemmer",
+       	    	func: gluedom(net.kornr.searchengine.parser.parse, [net.kornr.searchengine.normalizer.to_lowercase_nomark,net.kornr.searchengine.normalizer.french.simple_stemmer])
+       	    }
+ */	];
+
+	for (var i=0; i<under_test.length; ++i) {
+		var obj = under_test[i];
+		obj.id = 'el-xxxxxxxxxxx'.replace(/[xy]/g, function(c) {return String.fromCharCode(65+parseInt(Math.random()*26));	});
+		$("#results").append(function() {
+			return "<div class='floatbox'>"+obj.label+"<div class='resultbox' id='"+obj.id+"'></div></div>";
+		});
+	}
+
+/* 	var parser = function(sentence, value, word_callback) {
+		console.log("parssing " + sentence);
+		fullproof.parser.parse(sentence, function(word) {
+			if (word) {
+				word = SEARCH.normalizer.to_lowercase_nomark(word);
+				word_callback(word, value);
+			}
+		});
+	}
+ */	
+	$("#action").click(function() {
+		var value = $("#typehere").val();
+		
+		var lines = value.split("\n");
+		$("#analysis").html("Storing " + lines.length + " lines");		
+		for (var i=0; i<under_test.length; ++i) {
+			var o = under_test[i];
+			o.engine.clear(function() {
+				var ilog = "Storing " + lines.length + " lines<p/><pre>";
+				for (var l=0; l<lines.length; ++l) {
+					if (lines[l].length) {
+						
+						o.parser.parse(lines[l], function(word) {
+							ilog += ("storing word " + word +" => " + l + "\n");
+							o.engine.inject(word, l); // the line number is the value stored
+						});
+					}
+				}
+				ilog += "</pre>";
+				$("#"+o.id).html(ilog);
+			});
+		}
+	});
+	
+	$("#lookup").click(function() {
+		var value = $("#search").val();
+		var split = value.split(" ");
+		if (split.length) {
+			value = split[0].trim();
+			
+			for (var i=0; i<under_test.length; ++i) {
+				var o = under_test[i];
+				var ilog = "lookup of " + value + " <p/><pre>";
+				o.parser.parse(value, function(word) {
+					var set = o.engine.lookup(word, function(data) {
+						if (data) {
+							ilog += "found "+word+" on lines: " + data.join(",");
+							console.log(data);
+						} else {
+							ilog += "Not found: the database is empty or the word is not contained";
+						}
+						
+						ilog += "</pre>";
+						$("#"+o.id).html(ilog);
+					});
+				});
+			}
+		}
+	});
+	
+});</script>
+</body>
+</html>

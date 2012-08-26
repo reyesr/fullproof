@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Javascript Search Engine : Analyzers testing</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+<script type="text/javascript" src="src/unicode/categ_letters_numbers.js"></script>
+<script type="text/javascript" src="src/unicode/normalizer_lowercase_nomark.js"></script>
+<script type="text/javascript" src="src/unicode/unicode.js"></script>
+<script type="text/javascript" src="src/analyzers.js"></script>
+<script type="text/javascript" src="src/normalizers.js"></script>
+<script type="text/javascript" src="src/normalizers/normalizers-english.js"></script>
+<script type="text/javascript" src="src/normalizers/normalizers-french.js"></script>
+<style TYPE="text/css">
+
+div.floatbox {
+	float:left; width: 300px;
+}
+div.resultbox {
+	border: 1px solid black; margin:0.5em;
+	color: black; background-color: #EEEEEE;
+	overflow: hidden;
+}
+textarea.typebox {
+	float: left;
+	width: 300px; height: 200px; margin:1em;"
+	color: black; background-color: white;
+}
+</style>
+</head>
+<body>
+<h1>Testing the Analyzers</h1>
+
+The javascript search engine is provided with a set of normalizers that can be chained to the parser.
+An analyzer is just a parser associated to a set (possibly empty) of normalizers.
+The goal of the normalization process is to reduce the set of words to index and to provide a way to
+automatically remove typos, stem, or reduce words to phonetic equivalents so that they are represented
+in the index by one single form.
+<p/>
+Each normalizer have their own strategy and "aggressiveness". For instance:
+<ul>
+	<li><tt>remove_duplicate_letters</tt> just remove sequences of the same letter.</li>
+	<li><tt>to_lowercase_decomp</tt> provides a unicode-decomposed, lower-cased form of the words.</li>
+	<li><tt>to_lowercase_nomark</tt> lowercases the words and remove all the diacritical marks</li>
+	<li><tt>porter_stemmer</tt> stems the words using english-based rules</li>
+	<li><tt>french_normalizer</tt> agressively normalizes french words by stemming and phonetically simplifying them</li>
+</ul> 
+
+You can try some normalizers by typing text here:
+
+<div>
+	<textarea id="typehere" class="typebox"></textarea>
+	<div class="floatbox">Parsed<div class="resultbox" id="result_parsed" ></div></div>
+</div>
+<div style="clear:both" id="results">
+</div>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+		
+	var under_test = [
+       	    {
+       	    	label: "Standard parser + lowercase + remove dups",
+       	    	parser: new fullproof.StandardAnalyzer([fullproof.normalizer.to_lowercase_nomark, fullproof.normalizer.remove_duplicate_letters])
+       	    },
+       	    {
+       	    	label: "Standard parser + lowercase + english porter stemmer",
+       	    	parser: new fullproof.StandardAnalyzer([fullproof.normalizer.to_lowercase_nomark,fullproof.normalizer.english.porter_stemmer])
+       	    },
+       	    {
+       	    	label: "Standard parser + lowercase + french stemmer",
+       	    	parser: new fullproof.StandardAnalyzer([fullproof.normalizer.to_lowercase_nomark,fullproof.normalizer.french.simple_stemmer])
+       	    }
+	];
+
+	var nakedParser = {
+			parser: new fullproof.StandardAnalyzer(),
+			id: "result_parsed"
+		};
+	
+	function process(obj, text) {
+		var result = [];
+		obj.parser.sendFalseWhenComplete = true;
+		obj.parser.parse(text, function(word) {
+			if (word) {
+				result.push(word);
+			} else {
+				$("#"+obj.id).html(result.join(", "));
+			}
+		});
+	}
+	
+	for (var i=0; i<under_test.length; ++i) {
+		var obj = under_test[i];
+		obj.id = 'el-xxxxxxxxxxx'.replace(/[xy]/g, function(c) {return String.fromCharCode(65+parseInt(Math.random()*26));	});
+		$("#results").append(function() {
+			return "<div class='floatbox'>"+obj.label+"<div class='resultbox' id='"+obj.id+"'></div></div>";
+		});
+	}
+	
+	$("#typehere").keyup(function() {
+		var value = $(this).val();
+		process(nakedParser, value);
+		for (var i=0; i<under_test.length; ++i) {
+			var o = under_test[i];
+			process(o, value);
+		}
+
+		
+	});
+});</script>
+</body>
+</html>
