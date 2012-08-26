@@ -136,7 +136,7 @@ var fullproof = (function(NAMESPACE) {
 		}
 
 		return function(token, maxLength) {
-		    maxLength == maxLength || 32;
+		    maxLength = maxLength || 32;
 		    token = token.toLowerCase();
 		    token = dedup(token);
 		    token = dropInitialLetters(token);
