@@ -6,7 +6,7 @@ var fullproof = (function(NAMESPACE) {
 		
 		var suffix_removals_verbs_raw = [
 				                       // Below, common verbs suffix first			    
-				    [/.../, /er(ai([st]?|ent)|i?(on[ts]|ez))$/, "e"]
+				    [/.../, /er(ai([st]?|ent)|i?(on[ts]|ez))$/, "e"],
 				    [/.../, /ass(i?(ez?|ons)|e(nt|s)?)$/, "e"], // asse, asses, assez, assiez, assies*, if root length >= 3
 				    [/.../, /assions$/, "e"], // assions if root lengh>=3
 				    [/.../, /assent$/, "e"],   // assent if root lengh>=3
@@ -24,7 +24,7 @@ var fullproof = (function(NAMESPACE) {
 				    [/i?ons$/, ""],   // removes ons, ions
 				    [/ait$/, ""],     // removes ait
 				    [/ent$/, ""],     // removes ent
-				    [/i?e[rz]$/, "e"], // removes er, ez, iez
+				    [/i?e[rz]$/, "e"] // removes er, ez, iez
 				    
 				];
 				
@@ -47,7 +47,7 @@ var fullproof = (function(NAMESPACE) {
 				    [/ives?$/, "if"], // // "consécutives" -> con
 				    [/istes?$/, "isme"], // maybe a bit aggressive ?
 				    [/ables?$/, ""], // "chiffrable" -> "chiffr". aggressive ?
-				    [/[^ae]/, /ines?$/, "1"],// "citadine"->"citadin"
+				    [/[^ae]/, /ines?$/, "1"] // "citadine"->"citadin"
 				 ];
 
 				var phonetic_transforms_raw = [
@@ -116,7 +116,7 @@ var fullproof = (function(NAMESPACE) {
 				   [/es?$/, ""], // final e 
 				    
 				   //plural
-				   [/[xs]$/, ""],
+				   [/[xs]$/, ""]
 				   
 				];
 				
