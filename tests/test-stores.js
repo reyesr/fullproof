@@ -1,108 +1,110 @@
 module("Stores");
 
-function resultSetEqual(a,b) {
-	a = (a instanceof fullproof.ResultSet)?a.getDataUnsafe():a;
-	b = (b instanceof fullproof.ResultSet)?b.getDataUnsafe():b;
-	deepEqual(a,b);
-}
+test("noop", function() {
+	ok(true);
+});
 
-var genericComparator = {
-	lower_than: function(a,b) {
-		if (typeof a == "object") {
-			return a.id < b.id;
-		} else {
-			return parseInt(a.id) < parseInt(b.id);
-		}
-	},
-	equals: function(a,b) {
-		if (typeof a == "object") {
-			return a.id == b.id;
-		} else {
-			return a.id == b.id;
-		}
-	}
-};
+function build_store_test(name, store, dataGenerator, useScore) {
 
-function test_specific_key(store, key, expectedValue) {
-	QUnit.stop();
-	store.lookup(key, function(val) {
-		equal(val, expectedValue);
-		QUnit.start();
-	});
-}
-
-function inject_object_data(store, obj, callback) {
-	for (var k in obj) {
-		if (obj[k]) {
-			var val = obj[k];
-			delete obj[k];
-			console.log("injecting " + k + " / " + val);
-			return store.inject(k,val, function() {
-				inject_object_data(store,obj,callback);
-			});
-		}
-	}
-	return callback();
-}
-
-function check_object_data_lookup(store, obj, callback) {
-	for (var k in obj) {
-		if (obj[k]) {
-			var key = k;
-			var val = obj[key];
-			delete obj[key];
-			return store.lookup(key, function(res) {
-				console.log("checking " + k + " / " + val + " / " + res);
-				resultSetEqual(val,res);
-				
-				check_object_data_lookup(store,obj,callback);
-			});
-		}
-	}
-	console.log("check object ended, now callback()")
-	return callback();
-}
-
-
-function build_store_test(name, store, primaryValuesOnly) {
-	
 	test(name+"_clear", function() {
+		expect(1);
 		QUnit.stop();
 		var result = false;
-		store.clear(function() {
-			store.inject("key", "value", function() {
-				store.clear();
-				var value = store.lookup("key", function(val) {
-					//deepEqual(val, []);
-					resultSetEqual(val,[]);
-					QUnit.start();
+		store.openIndex("test", {useScore: useScore}, false, function(index) {
+			index.clear(function() {
+				index.inject("key", "value", function() {
+					index.clear(function() {
+						index.lookup("key", function(val) {
+							//deepEqual(val, []);
+							val.testEquals([]);
+							QUnit.start();
+						});
+					});
 				});
-			});
-		});	
+			});	
+		});
 	});
 
 	test(name+"_clear_invalid_callback", function() {
+		expect(1);
+		QUnit.stop();
 		try {
-			store.clear(); // Call without callback
-			ok(true);
+			store.openIndex("test_clear", {useScore: useScore}, false, function(index) {
+				index.clear();
+				index.clear(undefined);
+				index.clear(false);
+				ok(true);
+				QUnit.start();
+			});
 		} catch(e) {
 			ok(false);
 		}
 	});
 
-	function test_data(subname, dataset1, dataset2, resultdataset) {
-		var count = 0;
-		for (var k in resultdataset) {
-			++count;
-		}
-		test(name+"_inject_"+subname, function() {
-			expect(1 + count);
+	test(name+"_data_injection", function() {
+		var dataset = fullproof.tests.makeResultSetOfScoredEntries(10,100);
+		console.log("DATASET", dataset);
+		var results = {}; 
+		dataset.forEach(function(e) {
+			results[e.key] = [new fullproof.ScoredElement(e.value,e.score)];
+		});
+		
+		expect(1 + dataset.getSize()* (useScore?2:1));
+		QUnit.stop();
+		
+		store.openIndex("test_clear", {useScore: useScore}, false, function(index) {
+			index.clear(function() {
+				
+				var synchro_inject = fullproof.make_synchro_point(function(args) {
+					var rset = new fullproof.ResultSet().merge(dataset);
+					
+					var verifier = function(res) {
+						console.log("VERIFIER",res);
+						equal(dataset.getSize(), res.length);
+						for (var i=0; i<res.length; ++i) {
+							if (useScore) {
+								equal(res[i].getDataUnsafe()[0].value, dataset.getDataUnsafe()[i].value);
+								equal(res[i].getDataUnsafe()[0].score, dataset.getDataUnsafe()[i].score);
+							} else {
+								equal(res[i].getDataUnsafe()[0], dataset.getDataUnsafe()[i].value);
+							}
+						}
+						QUnit.start();
+					};
+					
+					var verif_synchro = fullproof.make_synchro_point(verifier, dataset.getSize());
+					
+					dataset.forEach(function(o) {
+						index.lookup(o.key?o.key:o, verif_synchro);
+						
+					});
+					
+				}, dataset.getSize());
+				
+				dataset.forEach(function(el) {
+					index.inject(el.key, useScore?new fullproof.ScoredElement(el.value, el.score):el.value, synchro_inject);
+				});
+//				console.log(dataset.toString());
+			});
+		});		
+	});
+	
+	if (useScore) {
+		
+		test(name+"_test_score_zero", function() {
+			expect(4);
 			QUnit.stop();
-			store.clear(function() {
-				inject_object_data(store, dataset1, function() {
-					inject_object_data(store, dataset2, function() {
-						check_object_data_lookup(store, resultdataset, function() {
-							ok(true);
+			var result = false;
+			store.openIndex("test_clear", {useScore: useScore}, false, function(index) {
+				index.clear(function() {
+					index.inject("key", new fullproof.ScoredElement("value", 0), function() {
+						index.lookup("key", function(val) {
+							//deepEqual(val, []);
+							var arr = val.getDataUnsafe();
+							equal(val.getSize(),1);
+							equal(arr.length,1);
+							equal(arr[0].value, "value");
+							equal(arr[0].score, 0);
 							QUnit.start();
 						});
 					});
@@ -110,31 +112,39 @@ function build_store_test(name, store, primaryValuesOnly) {
 			});
 		});
 	}
-	
-	test_data("integer_nooverlap", {one:1,two:2}, {three:3}, {one:[1], two:[2], three:[3]})
-//	test_data("integer_overlap", {one:1,two:2,three:3,four:4}, {two:22,three:33,five:5}, {one:[1], two:[2,22], three:[3,33], four:[4], five:[5]})
-	if (!primaryValuesOnly) {
-		test_data("objects", {one:{id:1},two:{id:2},three:{id:3},four:{id:4}}, {two:{id:22},three:{id:33},five:{id:5}}, 
-				 {one:[{id:1}], two:[{id:2},{id:22}], three:[{id:3},{id:33}], four:[{id:4}], five:[{id:5}]})
-	}
-	
+
 	
 }
 
-
-build_store_test("memory", new fullproof.store.MemoryStore(genericComparator));
-
-test("creating websql store", function() {
-	var websql = new fullproof.store.WebSQLStore();
-	expect(2);
-	QUnit.stop();
-	ok(websql);
-	websql.open("testdb", "testtable", 1024*1024, function(res) {
-		ok(res);
-		if (res) {
-			build_store_test("websql", websql, true);	
+function mkDataGenerator(integerValueOnly) {
+	return function(count, overlap) {
+		var set1 = integerValueOnly?fullproof.tests.makeResultSetOfScoredEntries(count,100*count):fullproof.tests.makeResultSetOfScoredEntriesObjects(count);
+		var set2 = integerValueOnly?fullproof.tests.makeResultSetOfScoredEntries(overlap?count/2:count,100*count):fullproof.tests.makeResultSetOfScoredEntriesObjects(overlap?count/2:count);
+		var set3 = new ResultSet;
+		if (overlap) {
+			set3 = integerValueOnly?fullproof.tests.makeResultSetOfScoredEntries(overlap?count/2:count,100*count):fullproof.tests.makeResultSetOfScoredEntriesObjects(overlap?count/2:count);
+			set2.merge(set3);
 		}
-		QUnit.start();
-	});
-});
+		var merged = new fullproof.ResultSet().merge(set1,set2);
+		var expected = [];
+		merged.forEach(function(e) {expected.push([e]);});
+		return {
+			set1: set1, 
+			set2: set2,
+			expected: expected
+		}
+	}	
+}
 
+build_store_test("memory_noscore_integers", new fullproof.store.MemoryStore, mkDataGenerator(true), false);
+build_store_test("memory_score_integers", new fullproof.store.MemoryStore, mkDataGenerator(true), true);
+build_store_test("memory_score_objects", new fullproof.store.MemoryStore, mkDataGenerator(false), true);
+build_store_test("memory_noscore_objects", new fullproof.store.MemoryStore, mkDataGenerator(false), true);
+
+var sqldb = (new fullproof.store.WebSQLStore()).setOptions({dbSize: 1024*1024*1, dbName: "fullprooftest"});
+sqldb.openStore(function(store) {
+	build_store_test("websql_noscore_integers", store, mkDataGenerator(true), false);
+	build_store_test("websql_score_integers", store, mkDataGenerator(true), true);
+	build_store_test("websql_noscore_objects", store, mkDataGenerator(true), false);
+	build_store_test("websql_score_objects", store, mkDataGenerator(true), true);
+});

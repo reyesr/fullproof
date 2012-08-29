@@ -1,6 +1,102 @@
 var fullproof = (function(NAMESPACE) {
 	"use strict";
 	
+	NAMESPACE.ScoredElement = function(value, score) {
+		if (!(this instanceof NAMESPACE.ScoredElement)) {
+			return new NAMESPACE.ScoredElement(value, score);
+		}
+		this.value = value;
+		this.score = score===undefined?1.0:score;
+	}
+
+	NAMESPACE.ScoredElement.prototype.toString = function() {
+		return "["+this.value+"|"+this.score+"]";
+	};
+	
+	NAMESPACE.ScoredEntry = function(key, value, score) {
+		if (!(this instanceof NAMESPACE.ScoredEntry)) {
+			return new NAMESPACE.ScoredEntry(key, value, score);
+		}
+		this.key = key;
+		this.value = value;
+		this.score = score===undefined?1.0:score;
+		this.toString = function() {
+			return "["+this.key+"="+this.value+"|"+this.score+"]";
+		}
+	}
+	NAMESPACE.ScoredEntry.prototype = new NAMESPACE.ScoredElement();
+	
+	NAMESPACE.ScoredEntry.comparatorObject = {
+			lower_than: function(a,b) {
+				return a.value<b.value;
+			},
+			equals: function(a,b) {
+				return a.value==b.value;
+			}
+		};
+
+	NAMESPACE.ScoredElement.comparatorObject = NAMESPACE.ScoredEntry.comparatorObject;
+//	{
+//		lower_than: function(a,b) {
+//			return a.value<b.value;
+//		},
+//		equals: function(a,b) {
+//			return a.value==b.value;
+//		}
+//	};
+	
+	/**
+	 * Creates a synchronization point. This function returns a function that collects
+	 * calls to callback, then calls its callback argument with all the data collected.
+	 * The synchronization point can trigger the final call to callback when it either
+	 * receives a fixed number of calls (expected argument >= 1), or when it
+	 * receives a false boolean value as argument (expected has to be either undefined or false)
+	 * 
+	 */
+	NAMESPACE.make_synchro_point = function(callback, expected) {
+		var count = 0;
+		var results = [];
+		return function(res) {
+			if (expected === false || expected === undefined) {
+				if (res === false) {
+					callback(results);
+				} else {
+					results.push(res);
+				}
+			} else {
+				++count;
+				results.push(res);
+				if (count == expected) {
+					callback(results);
+				}
+			}
+		}
+	}
+
+	NAMESPACE.make_callback_caller = function(callback) {
+		var args = [];
+		for (var i=1; i<arguments.length; ++i) {
+			args.push(arguments[i]);
+		}
+		return function() {
+			if (callback) {
+				callback.apply(this, args);
+			}
+		}
+	};
+
+	
+	NAMESPACE.filterObjectProperties = function(array_of_object, property) {
+		if (array_of_object instanceof NAMESPACE.ResultSet) {
+			array_of_object = array_of_object.getDataUnsafe();
+		}
+		var result = [];
+		for (var i=0,max=array_of_object.length; i<max; ++i) {
+			result.push(array_of_object[i][property]);
+		}
+		return result;
+	}
+	
 	function getNewXmlHttpRequest()  {
 		if (typeof window.XMLHttpRequest !== "undefined") {
 			return new window.XMLHttpRequest;

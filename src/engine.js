@@ -27,33 +27,13 @@ var fullproof = (function(NAMESPACE) {
 				});
 			}
 		}
-
-		function make_synchro_point(callback, expected) {
-			var count = 0;
-			var results = [];
-			return function(res) {
-				if (expected === false || expected === undefined) {
-					if (res === false) {
-						callback(results);
-					} else {
-						results.push(res);
-					}
-				} else {
-					++count;
-					results.push(res);
-					if (count == expected) {
-						callback(results);
-					}
-				}
-			}
-		}
 		
 		this.lookup = function(text, callback) {
 			for (var i=0; i<stores.length; ++i) {
 				(function(obj) {
-					obj.parser.parse(text, make_synchro_point(function(word_array) {
+					obj.parser.parse(text, NAMESPACE.make_synchro_point(function(word_array) {
 
-						var synchro_resultsets = make_synchro_point(function(resultsets) {
+						var synchro_resultsets = NAMESPACE.make_synchro_point(function(resultsets) {
 							if (resultsets.length == 0) {
 								callback(false);
 							} else {

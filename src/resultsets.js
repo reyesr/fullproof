@@ -225,37 +225,6 @@ fullproof = (function(NAMESPACE) {
 		
 	};
 	
-//	this.ResultEntry = function(resultArray, setType, initialWeight) {
-//		
-//	};
-//	
-//	function array_indexOf_proxy(arr,el) {
-//		return arr.indexOf(el);
-//	}
-
-//	function array_indexOf_hm(arr,el) {
-//		for (var i=0,max=arr.length; i<max; ++i) {
-//			if (arr[i]===el) {
-//				return i;
-//			}
-//		}
-//		return -1;
-//	}
-//
-	
-//	var array_indexOf = Array.indexOf?array_indexOf_proxy:array_indexOf_hm;
-//	
-//	NAMESPACE.intersects = function(array1, array2) {
-//		var result = [];
-//		for (var i=0, max=array1.length; i<max; ++i) {
-//			if (array_indexOf(array2, array1[i])>=0) {
-//				result.push(array1[i]);
-//			};			
-//		}
-//		return result;
-//	};
-//
-	
 	return NAMESPACE;
 
 })(fullproof);
