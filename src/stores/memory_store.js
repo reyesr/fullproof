@@ -13,15 +13,7 @@ fullproof.store = (function(NAMESPACE) {
 			return new NAMESPACE.MemoryStore(comparatorObject);
 		}
 
-//		this.capabilities = {
-//			can_store_object: true,
-//			memory_based: true,
-//			disk_based: false,
-//			available : true,
-//			support_scores: true
-//		};		
-		this.capabilities = new fullproof.Capabilities();
-		this.capabilities.setStoreObjects([true,false]).setVolatile(true).setAvailable(true).setUseScores([true,false]);
+		this.capabilities = new fullproof.Capabilities().setStoreObjects([true,false]).setVolatile(true).setAvailable(true).setUseScores([true,false]);
 		
 		this.indexes = {
 		};
@@ -88,7 +80,7 @@ fullproof.store = (function(NAMESPACE) {
 		return this;
 	};
 
-	MemoryStoreIndex.prototype.lookup = function(word, callback, retrieveScoredElements) {
+	MemoryStoreIndex.prototype.lookup = function(word, callback) {
 		callback(this.data[word]?this.data[word].clone():new fullproof.ResultSet);
 		return this;
 	};

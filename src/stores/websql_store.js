@@ -63,13 +63,6 @@ fullproof.store = (function(NAMESPACE) {
 			return new NAMESPACE.WebSQLStore();
 		}
 		
-//		this.capabilities= {
-//			can_store_object : false,
-//			memory_based : false,
-//			disk_based : true,
-//			available : window.openDatabase ? true : false
-//		};
-
 		this.capabilities = new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(window.openDatabase).setUseScores([true,false]);
 		
 		this.db = null;

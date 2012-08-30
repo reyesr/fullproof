@@ -44,7 +44,7 @@ var fullproof = (function(NAMESPACE) {
 			return new NAMESPACE.StandardAnalyzer(normalizers);
 		}
 		
-		this.sendFalseWhenComplete = false;
+		this.sendFalseWhenComplete = true;
 		
 		/**
 		 * The main method: cuts the text, and calls the normalizers on each word,
@@ -68,6 +68,13 @@ var fullproof = (function(NAMESPACE) {
 				}
 			});
 		}
+		
+		this.getArray = function(text, callback) {
+			var parser_synchro = fullproof.make_synchro_point(function(array_of_words) {
+				callback(array_of_words);
+			});
+			this.parse(text, parser_synchro);
+		};
 	};
 	
 	

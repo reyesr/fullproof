@@ -28,7 +28,7 @@ var fullproof = (function(NAMESPACE) {
 		
 		var self = this;
 		
-		function findSuitableStore(name, parameters, initializer, callback, queue) {
+		function findSuitableStore(name, parameters, callback, queue) {
 			if (queue.constructor != Array || queue.length == 0) {
 				return callback(false);
 			}
@@ -47,12 +47,12 @@ var fullproof = (function(NAMESPACE) {
 					if (store) {
 						callback(store, candidate);
 					} else {
-						findSuitableStore(name, parameters, initializer, callback, queue);
+						findSuitableStore(name, parameters, callback, queue);
 					}
 				});
 			}
 			
-			findSuitableStore(name, parameters, initializer, callback, queue);
+			findSuitableStore(name, parameters, callback, queue);
 		}
 				
 		this.openIndex = function(name, parameters, initializer, callback) {
@@ -67,11 +67,15 @@ var fullproof = (function(NAMESPACE) {
 			}
 			
 			var storeDescriptors = [].concat(this.available);
-			findSuitableStore(name, parameters, initializer, function(store, obj) {
+			findSuitableStore(name, parameters, function(store, obj) {
 				if (store) {
-					self.indexes[name] = {name: name, store: store}
+					store.openIndex(name, parameters, initializer, function(index) {
+						self.indexes[name] = {name: name, store: store, index: index}
+						callback(index);
+					});
+				} else {
+					callback(false);
 				}
-				callback(store, obj);
 			}, storeDescriptors);
 		};
 

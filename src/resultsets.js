@@ -193,6 +193,10 @@ fullproof = (function(NAMESPACE) {
 			return this;
 		};
 		
+		this.getItem = function(i) {
+			return data[i];
+		}
+		
 		this.getDataUnsafe = function() {
 			return data;
 		}
