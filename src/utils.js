@@ -36,14 +36,70 @@ var fullproof = (function(NAMESPACE) {
 		};
 
 	NAMESPACE.ScoredElement.comparatorObject = NAMESPACE.ScoredEntry.comparatorObject;
-//	{
-//		lower_than: function(a,b) {
-//			return a.value<b.value;
-//		},
-//		equals: function(a,b) {
-//			return a.value==b.value;
-//		}
-//	};
+
+	NAMESPACE.Capabilities = function() {
+		if (!(this instanceof NAMESPACE.Capabilities)) {
+			return new NAMESPACE.Capabilities();
+		}
+	};
+	NAMESPACE.Capabilities.prototype.matchValue = function(property, value) {
+		if (value === undefined) {
+			return true;
+		} else if (typeof property == "object" && property.constructor == Array) {
+			for (var i=0; i<property.length; ++i) {
+				if (property[i] === value) {
+					return true;
+				}
+			}
+			return false;
+		} else {
+			return property === value;
+		}
+	}
+
+	NAMESPACE.Capabilities.prototype.setStoreObjects = function(val) {
+		this.canStoreObjects = val;
+		return this;
+	}
+	NAMESPACE.Capabilities.prototype.getStoreObjects = function() {
+		return this.canStoreObjects;
+	}
+	NAMESPACE.Capabilities.prototype.setVolatile = function(val) {
+		this.isVolatile = val;
+		return this;
+	}
+	NAMESPACE.Capabilities.prototype.setAvailable = function(val) {
+		this.isAvailable = !!val;
+		return this;
+	}
+	NAMESPACE.Capabilities.prototype.setUseScores= function(val) {
+		this.useScores = val;
+		return this;
+	}
+	NAMESPACE.Capabilities.prototype.getUseScores= function() {
+		return this.useScores;
+	}
+	NAMESPACE.Capabilities.prototype.setComparatorObject= function(obj) {
+		this.comparatorObject = obj;
+		return this;
+	}
+	NAMESPACE.Capabilities.prototype.getComparatorObject= function(obj) {
+		return this.comparatorObject;
+	}
+	NAMESPACE.Capabilities.prototype.isCompatibleWith= function(otherCapabilities) {
+//		var objstore = otherCapabilities.canStoreObjects!==undefined?(otherCapabilities.canStoreObjects===this.canStoreObjects):true;
+//		var isvol = otherCapabilities.isVolatile!==undefined?(otherCapabilities.isVolatile===this.isVolatile):true;
+//		var isavail = this.isAvailable===true;
+//		var score = otherCapabilities.useScores!==undefined?(otherCapabilities.useScores===this.useScores):true;
+
+		var objstore = this.matchValue(this.canStoreObjects, otherCapabilities.canStoreObjects);
+		var isvol = this.matchValue(this.isVolatile, otherCapabilities.isVolatile);
+		var score = this.matchValue(this.useScores, otherCapabilities.useScores);
+		var isavail = this.isAvailable===true;
+		
+		return objstore && isvol && isavail && score;
+	}
+	
 	
 	/**
 	 * Creates a synchronization point. This function returns a function that collects

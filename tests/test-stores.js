@@ -6,11 +6,14 @@ test("noop", function() {
 
 function build_store_test(name, store, dataGenerator, useScore) {
 
+	var caps = new fullproof.Capabilities().setUseScores(useScore);
+	
 	test(name+"_clear", function() {
 		expect(1);
 		QUnit.stop();
 		var result = false;
-		store.openIndex("test", {useScore: useScore}, false, function(index) {
+		
+		store.openIndex("test", caps, false, function(index) {
 			index.clear(function() {
 				index.inject("key", "value", function() {
 					index.clear(function() {
@@ -29,7 +32,7 @@ function build_store_test(name, store, dataGenerator, useScore) {
 		expect(1);
 		QUnit.stop();
 		try {
-			store.openIndex("test_clear", {useScore: useScore}, false, function(index) {
+			store.openIndex("test_clear", caps, false, function(index) {
 				index.clear();
 				index.clear(undefined);
 				index.clear(false);
@@ -52,7 +55,7 @@ function build_store_test(name, store, dataGenerator, useScore) {
 		expect(1 + dataset.getSize()* (useScore?2:1));
 		QUnit.stop();
 		
-		store.openIndex("test_clear", {useScore: useScore}, false, function(index) {
+		store.openIndex("test_clear", caps, false, function(index) {
 			index.clear(function() {
 				
 				var synchro_inject = fullproof.make_synchro_point(function(args) {
@@ -95,7 +98,7 @@ function build_store_test(name, store, dataGenerator, useScore) {
 			expect(4);
 			QUnit.stop();
 			var result = false;
-			store.openIndex("test_clear", {useScore: useScore}, false, function(index) {
+			store.openIndex("test_clear", caps, false, function(index) {
 				index.clear(function() {
 					index.inject("key", new fullproof.ScoredElement("value", 0), function() {
 						index.lookup("key", function(val) {

@@ -58,17 +58,19 @@ fullproof.store = (function(NAMESPACE) {
 				}, fullproof.make_callback_caller(errorCallback,false))});
 	}
 	
-	NAMESPACE.WebSQLStore = function(comparatorObject,storeScores){
+	NAMESPACE.WebSQLStore = function(){
 		if (!(this instanceof NAMESPACE.WebSQLStore)) {
 			return new NAMESPACE.WebSQLStore();
 		}
 		
-		this.capabilities= {
-			can_store_object : false,
-			memory_based : false,
-			disk_based : true,
-			available : window.openDatabase ? true : false
-		};
+//		this.capabilities= {
+//			can_store_object : false,
+//			memory_based : false,
+//			disk_based : true,
+//			available : window.openDatabase ? true : false
+//		};
+
+		this.capabilities = new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(window.openDatabase).setUseScores([true,false]);
 		
 		this.db = null;
 		this.meta = null;
@@ -109,11 +111,11 @@ fullproof.store = (function(NAMESPACE) {
 		
 		parameters = parameters||{};
 		var index = new WebSQLStoreIndex();
-		var useScore = parameters.useScore!==undefined?(!!parameters.useScore):false;
+		var useScore = parameters.getUseScores()!==undefined?(parameters.getUseScores()):false;
 		
 		index.db = this.db;
 		index.tableName = name;
-		index.comparatorObject = parameters.comparatorObject?parameters.comparatorObject:(useScore?fullproof.ScoredElement.comparatorObject:undefined);
+		index.comparatorObject = parameters.getComparatorObject()?parameters.getComparatorObject():(useScore?fullproof.ScoredElement.comparatorObject:undefined);
 		index.useScore = useScore;
 		
 		var self = this;

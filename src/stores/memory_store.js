@@ -13,13 +13,15 @@ fullproof.store = (function(NAMESPACE) {
 			return new NAMESPACE.MemoryStore(comparatorObject);
 		}
 
-		this.capabilities = {
-			can_store_object: true,
-			memory_based: true,
-			disk_based: false,
-			available : true,
-			support_scores: true
-		};		
+//		this.capabilities = {
+//			can_store_object: true,
+//			memory_based: true,
+//			disk_based: false,
+//			available : true,
+//			support_scores: true
+//		};		
+		this.capabilities = new fullproof.Capabilities();
+		this.capabilities.setStoreObjects([true,false]).setVolatile(true).setAvailable(true).setUseScores([true,false]);
 		
 		this.indexes = {
 		};
@@ -37,8 +39,8 @@ fullproof.store = (function(NAMESPACE) {
 	
 	NAMESPACE.MemoryStore.prototype.openIndex = function(name, parameters, initializer, callback) {
 		var index = new MemoryStoreIndex();
-		var useScore = parameters.useScore!==undefined?(!!parameters.useScore):false;
-		index.comparatorObject = parameters.comparatorObject?parameters.comparatorObject:(useScore?fullproof.ScoredElement.comparatorObject:undefined);
+		var useScore = parameters.getUseScores()!==undefined?(parameters.getUseScores()):false;
+		index.comparatorObject = parameters.getComparatorObject()?parameters.getComparatorObject():(useScore?fullproof.ScoredElement.comparatorObject:undefined);
 		index.useScore = useScore;
 		
 		this.indexes[name] = index;
