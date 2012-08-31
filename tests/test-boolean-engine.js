@@ -10,7 +10,7 @@ var corpus = {
 function initializerFunc(injector, callback) {
 	var synchro = fullproof.make_synchro_point(callback, 5);
 	for (var k in corpus) {
-		injector(corpus[k], k, synchro);
+		injector.inject(corpus[k], k, synchro);
 	}
 } 
 

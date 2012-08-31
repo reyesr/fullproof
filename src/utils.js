@@ -86,12 +86,21 @@ var fullproof = (function(NAMESPACE) {
 	NAMESPACE.Capabilities.prototype.getComparatorObject= function(obj) {
 		return this.comparatorObject;
 	}
+	NAMESPACE.Capabilities.prototype.setDbName= function(name) {
+		this.dbName = name;
+		return this;
+	}
+	NAMESPACE.Capabilities.prototype.getDbName= function() {
+		return this.dbName;
+	}
+	NAMESPACE.Capabilities.prototype.setDbSize= function(size) {
+		this.dbSize = size;
+		return this;
+	}
+	NAMESPACE.Capabilities.prototype.getDbSize= function() {
+		return this.dbSize;
+	}
 	NAMESPACE.Capabilities.prototype.isCompatibleWith= function(otherCapabilities) {
-//		var objstore = otherCapabilities.canStoreObjects!==undefined?(otherCapabilities.canStoreObjects===this.canStoreObjects):true;
-//		var isvol = otherCapabilities.isVolatile!==undefined?(otherCapabilities.isVolatile===this.isVolatile):true;
-//		var isavail = this.isAvailable===true;
-//		var score = otherCapabilities.useScores!==undefined?(otherCapabilities.useScores===this.useScores):true;
-
 		var objstore = this.matchValue(this.canStoreObjects, otherCapabilities.canStoreObjects);
 		var isvol = this.matchValue(this.isVolatile, otherCapabilities.isVolatile);
 		var score = this.matchValue(this.useScores, otherCapabilities.useScores);
@@ -109,7 +118,7 @@ var fullproof = (function(NAMESPACE) {
 	 * receives a false boolean value as argument (expected has to be either undefined or false)
 	 * 
 	 */
-	NAMESPACE.make_synchro_point = function(callback, expected) {
+	NAMESPACE.make_synchro_point = function(callback, expected, debug) {
 		var count = 0;
 		var results = [];
 		return function(res) {
@@ -120,8 +129,12 @@ var fullproof = (function(NAMESPACE) {
 					results.push(res);
 				}
 			} else {
+				
 				++count;
 				results.push(res);
+				if (debug) {
+					console.log("synchro point " + count + " / " + expected);
+				}
 				if (count == expected) {
 					callback(results);
 				}

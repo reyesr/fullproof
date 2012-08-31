@@ -9,7 +9,7 @@ var fullproof = (function(NAMESPACE) {
 		this.ref = ref;
 	};
 	
-	NAMESPACE.StoreManager = function(storeDescriptors) {
+	NAMESPACE.StoreManager = function(storeDescriptors, dbName) {
 	
 		this.available = [];
 		
@@ -43,7 +43,7 @@ var fullproof = (function(NAMESPACE) {
 			
 			var caps = store.capabilities;
 			if (caps.isCompatibleWith(parameters)) {
-				return store.openStore(function(store) {
+				return store.openStore(parameters, function(store) {
 					if (store) {
 						callback(store, candidate);
 					} else {

@@ -21,7 +21,7 @@ fullproof.store = (function(NAMESPACE) {
 		return this;
 	};
 
-	NAMESPACE.MemoryStore.prototype.openStore = function(callback) {
+	NAMESPACE.MemoryStore.prototype.openStore = function(parameters, callback) {
 		callback(this);
 	};
 	NAMESPACE.MemoryStore.prototype.closeStore = function(callback) {
@@ -80,6 +80,17 @@ fullproof.store = (function(NAMESPACE) {
 		return this;
 	};
 
+	MemoryStoreIndex.prototype.injectBulk = function(keyArray, valueArray, callback) {
+		for (var i=0; i<keyArray.length && i<valueArray.length; ++i) {
+			this.inject(keyArray[i], valueArray[i]);
+		}
+		if (callback) {
+			callback(keyArray,valueArray);
+		}
+		return this;
+	};
+
+	
 	MemoryStoreIndex.prototype.lookup = function(word, callback) {
 		callback(this.data[word]?this.data[word].clone():new fullproof.ResultSet);
 		return this;

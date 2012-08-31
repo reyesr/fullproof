@@ -4,28 +4,48 @@ var fullproof = (function(NAMESPACE) {
 	NAMESPACE.CONST_MODE_UNION = 2;
 	NAMESPACE.CONST_MODE_WEIGHTED_UNION = 3;
 	
-	NAMESPACE.BooleanEngine = function() {
+	NAMESPACE.BooleanEngine = function(dbName) {
 
 		if (!(this instanceof NAMESPACE.BooleanEngine)) {
-			return new NAMESPACE.BooleanEngine();
+			return new NAMESPACE.BooleanEngine(dbName);
 		}
 
 		var stores = [];
 		this.storeManager = new fullproof.StoreManager();
 		this.booleanMode = NAMESPACE.CONST_MODE_INTERSECT;
 
-		function makeTextInjectorFunction(index, parser) {
-			return function(text, value, callback) {
-				parser.getArray(text, function(array_of_words) {
-					var synchro = fullproof.make_synchro_point(callback, array_of_words.length);
-					for (var i=0; i<array_of_words.length; ++i) {
-						index.inject(array_of_words[i], value, synchro); // the line number is the value stored
+		function makeTextInjector(index, parser) {
+			var keyArrays = [];
+			var valueArrays = [];
+			return {
+				inject: function(text,value,callback) {
+
+					parser.getArray(text, function(array_of_words) {
+						var synchro = fullproof.make_synchro_point(callback, array_of_words.length);
+						for (var i=0; i<array_of_words.length; ++i) {
+							index.inject(array_of_words[i], value, synchro); // the line number is the value stored
+						}
+					});
+				},
+				injectBulk: function(textArray, valueArray, callback, progressCallback) {
+					var words = [];
+					var values = [];
+					for (var i=0, max=Math.min(textArray.length, valueArray.length); i<max; ++i) {
+						(function(text,value) {
+							parser.getArray(text, function(array_of_words) {
+								for (var w=0; w<array_of_words.length; ++w) {
+									words.push(array_of_words[w]);
+									values.push(value);
+								}
+							});
+						})(textArray[i], valueArray[i]);
 					}
-				});
-			}
-		}
+					index.injectBulk(words,values, callback, progressCallback);
+				}
+			};
+		};
 		
-		this.addIndex = function(name, parser, capabilities, initializer, callback) {
+		this.addIndex = function(name, parser, capabilities, initializer, completionCallback) {
 			var self = this;
 			var indexData = {
 				name: name,
@@ -34,15 +54,15 @@ var fullproof = (function(NAMESPACE) {
 			};
 			
 			this.storeManager.openIndex(name, capabilities, function(index ,callback) {
-				var injector = makeTextInjectorFunction(index, parser);
+				var injector = makeTextInjector(index, parser);
 				initializer(injector, callback);
 			}, function(index) {
 				if (index) {
 					indexData.index = index;
 					stores.push(indexData);
-					callback(index);
+					completionCallback(index);
 				} else {
-					callback(false);
+					completionCallback(false);
 				}
 			});
 		}

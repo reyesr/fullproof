@@ -12,10 +12,13 @@
 <script type="text/javascript" src="../../src/analyzers.js"></script>
 <script type="text/javascript" src="../../src/normalizers.js"></script>
 <script type="text/javascript" src="../../src/normalizers/english/metaphone.js"></script>
+
 <script type="text/javascript" src="../../src/utils.js"></script>
-<script type="text/javascript" src="../../src/engine.js"></script>
+<script type="text/javascript" src="../../src/boolean-engine.js"></script>
 <script type="text/javascript" src="../../src/resultsets.js"></script>
+<script type="text/javascript" src="../../src/storemanager.js"></script>
 <script type="text/javascript" src="../../src/stores/memory_store.js"></script>
+<script type="text/javascript" src="../../src/stores/websql_store.js"></script>
 
 <script type="text/javascript" src="animals.js"></script>
 
@@ -49,12 +52,13 @@ the <a href="http://gapanalysis.usgs.gov/data/species-data/">U.S. Geological Sur
 	<div>
 		<input type="text" id="typehere" class="typebox">
 		<button id="search">Search</button>
+		<button id="reload">Reload database</button>
 	</div>
 	<div style="clear:both" id="results">
 	</div>
 </div>
 <div id="loading">
-Application is loading
+Application is loading: <span id="progress"></span>%
 </div>
 <script type="text/javascript">
 
@@ -66,6 +70,8 @@ $(document).ready(function() {
 			$("#loading").hide();
 			$("#application").show();
 		}
+	}, function(progress) {
+		$("#progress").html(parseInt(progress*100));
 	});
 
 	var now = (function() {
@@ -90,10 +96,10 @@ $(document).ready(function() {
 
 	$("#search").click(search);
 	$("#typehere").change(search);
-	
-	var tests = ["hello", "rodrigo", "ghost"];
-	new fullproof.ResultSet().setDataUnsafe(tests).forEach(function(word) {
-		console.log("WORD: " + word + " = " + fullproof.english.metaphone()(word) );
+	$("#reload").click(function() {
+		Animals.reloadDatabase(function() {
+			window.location.reload(true);
+		});	
 	});
 	
 });</script>

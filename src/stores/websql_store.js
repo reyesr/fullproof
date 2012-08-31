@@ -3,12 +3,23 @@ fullproof.store = (function(NAMESPACE) {
 
 	function WebSQLStoreIndex() {
 		this.db = null;
+		this.store = null;
 		this.tableName = null;
 		this.comparatorObject = null;
 		this.storeScores = false;
 		this.opened = false;
 	}
 
+	function sql_table_exists_or_empty(tx, tablename, callback) {
+		tx.executeSql("SELECT * FROM " + tablename + " LIMIT 1,0", [], function(tx,res) {
+			if (res.rows.length == 1) {
+				callback(true);
+			} else {
+				callback(false);
+			}
+		}, fullproof.make_callback_caller(callback, false));
+	};
+	
 	function MetaData(store, callback, errorCallback) {
 		this.tablename = "fullproofmetadata";
 		var meta = this;
@@ -18,23 +29,63 @@ fullproof.store = (function(NAMESPACE) {
 			error = function() {
 				console.log("ERROR sql", arguments);
 			};
-			var tablename = this.tablename;
+			var tablename = meta.tablename;
 			store.db.transaction(function(tx) {
-				tx.executeSql("CREATE TABLE IF NOT EXISTS "+ name +" (id NCHAR(48), value, score)", [], 
-						function() {
-							tx.executeSql("CREATE INDEX IF NOT EXISTS "+ name +"_indx ON " + name + " (id)", [],
+				sql_table_exists_or_empty(tx, name, function(exists) {
+					if (!exists) {
+						tx.executeSql("CREATE TABLE IF NOT EXISTS "+ name +" (id NCHAR(48), value, score)", [], 
 									function() {
-										tx.executeSql("INSERT OR REPLACE INTO " + tablename + " (name) VALUES (?)", [name], 
-												fullproof.make_callback_caller(successCallback, true), 
-												error);
+										store.db.transaction(function(tx) {				
+											tx.executeSql("CREATE INDEX IF NOT EXISTS "+ name +"_indx ON " + name + " (id)", [], function() {
+												tx.executeSql("INSERT OR REPLACE INTO " + meta.tablename + " (id, initialized) VALUES (?,?)", [name, false], 
+														fullproof.make_callback_caller(successCallback, true), 
+														error);
+											}, error);
+										});
 									}, error);
-						}, error);
+					} else {
+						successCallback(true);
+					}
+				});
 			});
 		};
 
+		this.loadMetaData = function(callback) {
+			store.db.transaction(function(tx) {
+				tx.executeSql("SELECT * FROM " + meta,tablename + " WHERE id=?", [tableName], function(tx,res) {
+					var result = {};
+					for (var i=0; i<res.rows.length; ++i) {
+						var line = res.rows.item(i);
+						result[line.id] = {name: line.id, initialized: line.initialized, ctime: line.ctime, version: line.version};
+					}
+					callback(result);
+				}, fullproof.make_callback_caller(callback, {}));
+			});
+		};
+		
+		this.isInitialized = function(tableName, callback) {
+			store.db.transaction(function(tx) {
+				tx.executeSql("SELECT * FROM " + meta.tablename + " WHERE id=?", [tableName], function(tx,res) {
+					if (res.rows.length == 1) {
+						var line = res.rows.item(0);
+						callback("true" == line.initialized);
+					} else {
+						callback(false)
+					}
+				}, fullproof.make_callback_caller(callback, false));
+			});
+		};
+		
+		this.setInitialized = function(tablename, value, callback) {
+			store.db.transaction(function(tx) {
+				tx.executeSql("INSERT OR REPLACE INTO " + meta.tablename + " (id, initialized) VALUES (?,?)", [tablename, value?"true":"false"],
+						fullproof.make_callback_caller(callback, true),
+						fullproof.make_callback_caller(callback, false));
+			});
+		};
+		
 		this.getIndexSize = function(name, callback) {
 			store.db.transaction(function(tx) {
-				console.log("tx",tx);
 				tx.executeSql("SELECT count(*) AS cnt FROM " + name, [], function(tx,res) {
 					if (res.rows.length == 1) {
 						var line = res.rows.item(0);
@@ -44,15 +95,29 @@ fullproof.store = (function(NAMESPACE) {
 					}
 					callback(false);
 				}, function() {
-					console.log("ERROR", arguments);
 					callback(false);
 				});
-//				}, fullproof.make_callback_caller(callback, false));
 			});
 		};
 
+		this.eraseMeta = function(callback) {
+			var self = this;
+			meta.loadMetaData(function(data) {
+				store.db.transaction(function(tx) {
+					var count = 0;
+					for (var k in data) { ++count; }
+					var synchro = fullproof.make_synchro_point(function() {
+						tx.executeSql("DROP TABLE IF EXISTS "+ meta.tablename, [], fullproof.make_callback_caller(errorCallback,true), fullproof.make_callback_caller(errorCallback,false));
+					}, count);
+					for (var k in data) {
+						tx.executeSql("DROP TABLE IF EXISTS " + k);
+					}
+				});
+			});
+		};
+		
 		store.db.transaction(function(tx) {
-			tx.executeSql("CREATE TABLE IF NOT EXISTS "+ meta.tablename +" (id VARCHAR(52), ctime)", [], 
+			tx.executeSql("CREATE TABLE IF NOT EXISTS "+ meta.tablename +" (id VARCHAR(52) NOT NULL PRIMARY KEY, initialized, version, ctime)", [], 
 				function() {
 					callback(store);
 				}, fullproof.make_callback_caller(errorCallback,false))});
@@ -79,11 +144,16 @@ fullproof.store = (function(NAMESPACE) {
 		return this;
 	};
 
-	NAMESPACE.WebSQLStore.prototype.openStore = function(callback) {
+	NAMESPACE.WebSQLStore.prototype.openStore = function(parameters, callback) {
 		this.opened = false;
 		this.tableName = name;
-		var errorCallback = fullproof.make_callback_caller(callback, false);
-		this.db = openDatabase(this.dbName, '1.0', 'javascript search engine', this.dbSize);
+		if (parameters.getDbName() !== undefined) {
+			this.dbName = parameters.getDbName();
+		}
+		if (parameters.getDbSize() !== undefined) {
+			this.dbSize = parameters.getDbSize();
+		}
+		this.db = openDatabase(this.dbName, '1.0', 'javascript search engine', this.dbSize*10);
 		this.opened = true;
 		var sef = this;
 		this.meta = new MetaData(this, function(store) {
@@ -92,7 +162,6 @@ fullproof.store = (function(NAMESPACE) {
 	};
 
 	NAMESPACE.WebSQLStore.prototype.closeStore = function(callback) {
-		this.indexes = {};
 		this.opened = false;
 		callback(this);
 	};
@@ -104,6 +173,7 @@ fullproof.store = (function(NAMESPACE) {
 		
 		parameters = parameters||{};
 		var index = new WebSQLStoreIndex();
+		index.store = this;
 		var useScore = parameters.getUseScores()!==undefined?(parameters.getUseScores()):false;
 		
 		index.db = this.db;
@@ -112,30 +182,23 @@ fullproof.store = (function(NAMESPACE) {
 		index.useScore = useScore;
 		
 		var self = this;
-		this.meta.getIndexSize(name, function(tsize) {
-			console.log("GOT SIZE", tsize);
-			if (tsize === false) {
+		this.meta.isInitialized(name, function(isInit) {
+			if (isInit) {
+				return callback(index);
+			} else {
 				self.meta.createIndex(name, function() {
-					self.indexes[name] = index;
 					if (initializer) {
 						initializer(index, function() {
 							index.opened = true;
-							callback(index);
+							self.meta.setInitialized(name, true, fullproof.make_callback_caller(callback, index));
 						});
 					} else {
 						callback(index);
 					}
-				}, fullproof.make_callback_caller(callback, false));
-			} else if (tsize == 0) {
-				if (initializer) {
-					return initializer(index, fullproof.make_callback_caller(callback, index));
-				} else {
-					callback(index);
-				}
-			} else {
-				callback(index);
+					
+				});
 			}
-		});
+		});				
 	}; 
 	
 	NAMESPACE.WebSQLStore.prototype.closeIndex = function(name, callback) {
@@ -147,7 +210,10 @@ fullproof.store = (function(NAMESPACE) {
 	WebSQLStoreIndex.prototype.clear = function(callback) {
 		var self = this;
 		this.db.transaction(function(tx) {
-			tx.executeSql("DELETE FROM "+ self.tableName, [], fullproof.make_callback_caller(callback, true), fullproof.make_callback_caller(callback, false));
+			var synchro = fullproof.make_synchro_point(function() {
+				self.store.meta.setInitialized(self.tableName, false, callback);
+			});
+			tx.executeSql("DELETE FROM "+ self.tableName, [], fullproof.make_callback_caller(synchro, false), fullproof.make_callback_caller(callback, false));
 		});
 	};
 
@@ -160,6 +226,50 @@ fullproof.store = (function(NAMESPACE) {
 				tx.executeSql("INSERT OR REPLACE INTO " + self.tableName + " (id,value) VALUES (?,?)", [word, value], fullproof.make_callback_caller(callback, true), fullproof.make_callback_caller(callback, false));
 			}
 		});
+	};
+
+	WebSQLStoreIndex.prototype.injectBulk = function(wordArray, valuesArray, callback, progress) {
+		var self = this;
+		if (wordArray.length != valuesArray.length) {
+			throw "Can't injectBulk, arrays length mismatch";
+		}
+		var batchSize = 50;
+		var transactionsExpected = wordArray.length / batchSize + (wordArray%batchSize>0?1:0);
+		var bulk_synchro = fullproof.make_synchro_point(callback, undefined, true);
+		var totalSize = wordArray.length;
+		var processBulk = function(wArray, vArray) {
+			var curWords = wArray.splice(0, batchSize<wArray.length?batchSize:wArray.length);
+			var curValues = vArray.splice(0, batchSize<vArray.length?batchSize:vArray.length);
+			if (curWords.length == 0) {
+				bulk_synchro(false);
+			}
+			if (progress) {
+				progress((totalSize - wArray.length)/totalSize);
+			}
+			var synchronizer = fullproof.make_synchro_point(function() {
+				processBulk(wArray, vArray);
+			}, curWords.length);
+			self.db.transaction(function(tx) {
+				for (var i=0; i<curWords.length; ++i) {
+					var value = vArray[i];
+					if (value instanceof fullproof.ScoredElement) {
+						tx.executeSql("INSERT OR REPLACE INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [wArray[i], value.value, value.score], synchronizer, synchronizer);
+					} else {
+						
+						tx.executeSql("INSERT OR REPLACE INTO " + self.tableName + " (id,value) VALUES (?,?)", [wArray[i], value], 
+								function() {
+							synchronizer();
+						}, function() {
+							synchronizer(true);
+						});
+					}
+					
+				}
+			});
+		};
+		
+		processBulk(wordArray, valuesArray);
+		
 	};
 	
 	/**
@@ -186,7 +296,6 @@ fullproof.store = (function(NAMESPACE) {
 						callback(new fullproof.ResultSet(self.comparatorObject).setDataUnsafe(result));
 					}, 
 					function() {
-						console.log(arguments);
 						callback(false);
 					});
 		});
