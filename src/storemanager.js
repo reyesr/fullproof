@@ -70,7 +70,7 @@ var fullproof = (function(NAMESPACE) {
 			findSuitableStore(name, parameters, function(store, obj) {
 				if (store) {
 					store.openIndex(name, parameters, initializer, function(index) {
-						self.indexes[name] = {name: name, store: store, index: index}
+						self.indexes[name] = {name: name, store: store, index: index, descriptor: obj}
 						callback(index, obj);
 					});
 				} else {
@@ -78,6 +78,10 @@ var fullproof = (function(NAMESPACE) {
 				}
 			}, storeDescriptors);
 		};
+		
+		this.getInfoFor = function(indexName) {
+			return this.indexes[indexName];
+		}
 
 	};
 

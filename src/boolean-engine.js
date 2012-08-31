@@ -53,18 +53,19 @@ var fullproof = (function(NAMESPACE) {
 				caps: capabilities
 			};
 			
-			this.storeManager.openIndex(name, capabilities, function(index ,callback) {
-				var injector = makeTextInjector(index, parser);
-				initializer(injector, callback);
-			}, function(index) {
-				if (index) {
-					indexData.index = index;
-					stores.push(indexData);
-					completionCallback(index);
-				} else {
-					completionCallback(false);
-				}
-			});
+			this.storeManager.openIndex(name, capabilities, 
+					function(index ,callback) {
+						var injector = makeTextInjector(index, parser);
+						initializer(injector, callback);
+					}, function(index) {
+						if (index) {
+							indexData.index = index;
+							stores.push(indexData);
+							completionCallback(index);
+						} else {
+							completionCallback(false);
+						}
+					});
 		}
 		
 		this.injectDocument = function(key, text, callback) {
@@ -95,14 +96,14 @@ var fullproof = (function(NAMESPACE) {
 			}
 		};
 		
-		this.lookup = function(text, callback, storeIndex) {
+		this.lookup = function(text, callback, /* private */storeIndex) {
 			if (storeIndex === undefined) {
 				storeIndex = 0;
 			}
 			var self = this;
 			var store = stores[storeIndex];
 
-			var parser_synchro = NAMESPACE.make_synchro_point(function(array_of_words) {
+			store.parser.parse(text, NAMESPACE.make_synchro_point(function(array_of_words) {
 				
 				if (!array_of_words || array_of_words.length == 0) {
 					if (stores.length > storeIndex+1) {
@@ -142,9 +143,8 @@ var fullproof = (function(NAMESPACE) {
 				for (var i=0; i<array_of_words.length; ++i) {
 					store.index.lookup(array_of_words[i], lookup_synchro);
 				}
-			});
+			}));
 			
-			store.parser.parse(text, parser_synchro);
 		}
 				
 	}
