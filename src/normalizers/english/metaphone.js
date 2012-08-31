@@ -167,7 +167,7 @@ var fullproof = (function(NAMESPACE) {
 		    return token.toUpperCase();
 		};
 		
-	});
+	})();
 	return NAMESPACE;
 })(fullproof||{});
 
