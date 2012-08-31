@@ -71,7 +71,7 @@ var fullproof = (function(NAMESPACE) {
 				if (store) {
 					store.openIndex(name, parameters, initializer, function(index) {
 						self.indexes[name] = {name: name, store: store, index: index}
-						callback(index);
+						callback(index, obj);
 					});
 				} else {
 					callback(false);

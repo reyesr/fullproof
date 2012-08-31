@@ -10,7 +10,7 @@ function makeFakeStore(caps) {
 		this.openIndex = function(name, parameters, initializer, callback) {
 			callback(this);
 		}
-		this.openStore = function(callback) {
+		this.openStore = function(parameters, callback) {
 			callback(this);
 		}
 	}

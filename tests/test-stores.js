@@ -139,13 +139,14 @@ function mkDataGenerator(integerValueOnly) {
 	}	
 }
 
-build_store_test("memory_noscore_integers", new fullproof.store.MemoryStore, mkDataGenerator(true), false);
-build_store_test("memory_score_integers", new fullproof.store.MemoryStore, mkDataGenerator(true), true);
-build_store_test("memory_score_objects", new fullproof.store.MemoryStore, mkDataGenerator(false), true);
-build_store_test("memory_noscore_objects", new fullproof.store.MemoryStore, mkDataGenerator(false), true);
+//build_store_test("memory_noscore_integers", new fullproof.store.MemoryStore, mkDataGenerator(true), false);
+//build_store_test("memory_score_integers", new fullproof.store.MemoryStore, mkDataGenerator(true), true);
+//build_store_test("memory_score_objects", new fullproof.store.MemoryStore, mkDataGenerator(false), true);
+//build_store_test("memory_noscore_objects", new fullproof.store.MemoryStore, mkDataGenerator(false), true);
 
-var sqldb = (new fullproof.store.WebSQLStore()).setOptions({dbSize: 1024*1024*1, dbName: "fullprooftest"});
-sqldb.openStore(function(store) {
+var params = new fullproof.Capabilities().setDbName("fullprooftest").setDbSize(1024*1024*1);
+var sqldb = (new fullproof.store.WebSQLStore());
+sqldb.openStore(params, function(store) {
 	build_store_test("websql_noscore_integers", store, mkDataGenerator(true), false);
 	build_store_test("websql_score_integers", store, mkDataGenerator(true), true);
 	build_store_test("websql_noscore_objects", store, mkDataGenerator(true), false);
