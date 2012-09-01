@@ -44,17 +44,17 @@ fullproof.BooleanEngine = function(dbName) {
 	this.storeManager = new fullproof.StoreManager();
 	this.booleanMode = fullproof.CONST_MODE_INTERSECT;
 	
-	this.addIndex = function(name, parser, capabilities, initializer, completionCallback) {
+	this.addIndex = function(name, analyzer, capabilities, initializer, completionCallback) {
 		var self = this;
 		var indexData = {
 			name: name,
-			parser: parser,
+			parser: analyzer,
 			caps: capabilities
 		};
 		
 		this.storeManager.openIndex(name, capabilities, 
 				function(index ,callback) {
-					var injector = new fullproof.TextInjector(index, parser);
+					var injector = new fullproof.TextInjector(index, analyzer);
 					initializer(injector, callback);
 				}, function(index) {
 					if (index) {
@@ -145,5 +145,6 @@ fullproof.BooleanEngine = function(dbName) {
 		}));
 		
 	}
-			
 }
+fullproof.AbstractEngine = fullproof.AbstractEngine || (function() {});
+fullproof.BooleanEngine.prototype = new fullproof.AbstractEngine;

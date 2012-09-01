@@ -77,3 +77,22 @@ fullproof.TextInjector.prototype.injectBulk = function(textArray, valueArray, ca
 	}
 	this.index.injectBulk(words,values, callback, progressCallback);
 }; 
+
+fullproof.AbstractEngine = fullproof.AbstractEngine || (function() {});
+
+fullproof.AbstractEngine.prototype.addIndexes =  function(indexes, callback) {
+	var starter = false;
+	var engine = this;
+	while (indexes.length > 0) {
+		var data = indexes.pop();
+		starter = (function(next, data) {
+			return function() {
+				engine.addIndex(data.name, data.analyzer, data.capabilities, data.initializer, next!==false?next:callback);
+			};
+		})(starter, data);
+	}
+	if (starter !== false) {
+		starter();
+	}
+}
+

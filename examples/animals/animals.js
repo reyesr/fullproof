@@ -39,22 +39,24 @@ var Animals = (function(){
 		var loader = new fullproof.DataLoader();
 		loader.setQueue("data.csv");
 		loader.start(function() {
-			engine.addIndex("normalindex", 
-					new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.normalizer.remove_duplicate_letters), 
-					new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName), 
-					makeInitializer(makeProgressFunction(0.5,0)), 
-					function(index) {
-				engine.addIndex("metaphoneindex", 
-						new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.english.porter_stemmer), 
-						new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName), 
-						makeInitializer(makeProgressFunction(0.5,0.5)), 
-						function(index) {
-					callback(1);
-				}, makeProgressFunction(0.5,0.5));
-			}, makeProgressFunction(0.5,0));
-		}, function(txt, file) {
-			data = txt.split("\n");
-		}, function() { console.log("ERROR??");});
+			
+			var index1 = {
+					name: "normalindex",
+					analyzer: new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.normalizer.remove_duplicate_letters), 
+					capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName),
+					initializer: makeInitializer(makeProgressFunction(0.5,0)) 	
+			};
+			var index2 = {
+					name: "stemmedindex",
+					analyzer: new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.english.porter_stemmer), 
+					capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName),
+					initializer: makeInitializer(makeProgressFunction(0.5,0.5)) 	
+			};
+
+			engine.addIndexes([index1, index2], callback);
+			
+		}, function(txt, file) { data = txt.split("\n"); }, 
+		 function() { console.log("ERROR");});
 		
 	}
 

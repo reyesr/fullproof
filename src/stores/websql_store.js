@@ -252,7 +252,7 @@ fullproof.store = fullproof.store||{};
 		if (wordArray.length != valuesArray.length) {
 			throw "Can't injectBulk, arrays length mismatch";
 		}
-		var batchSize = 50;
+		var batchSize = 100;
 		var transactionsExpected = wordArray.length / batchSize + (wordArray%batchSize>0?1:0);
 		var bulk_synchro = fullproof.make_synchro_point(callback, undefined, true);
 		var totalSize = wordArray.length;
