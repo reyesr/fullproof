@@ -45,7 +45,7 @@ var Animals = (function(){
 					makeInitializer(makeProgressFunction(0.5,0)), 
 					function(index) {
 				engine.addIndex("metaphoneindex", 
-						new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.english.metaphone), 
+						new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.english.porter_stemmer), 
 						new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName), 
 						makeInitializer(makeProgressFunction(0.5,0.5)), 
 						function(index) {

@@ -11,7 +11,7 @@
 
 <script type="text/javascript" src="../../src/analyzers.js"></script>
 <script type="text/javascript" src="../../src/normalizers.js"></script>
-<script type="text/javascript" src="../../src/normalizers/english/metaphone.js"></script>
+<script type="text/javascript" src="../../src/normalizers/english/porter-stemmer.js"></script>
 
 <script type="text/javascript" src="../../src/utils.js"></script>
 <script type="text/javascript" src="../../src/boolean-engine.js"></script>
@@ -65,7 +65,6 @@ Application is loading: <span id="progress"></span>%
 $(document).ready(function() {
 
 	Animals.start(function(i) {
-		console.log("start, i="+i+" == " + (i==true));
 		if (i) {
 			$("#loading").hide();
 			$("#application").show();

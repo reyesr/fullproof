@@ -132,8 +132,8 @@ var fullproof = (function(NAMESPACE) {
 				
 				++count;
 				results.push(res);
-				if (debug) {
-					console.log("synchro point " + count + " / " + expected);
+				if (debug && console.log) {
+					console.log("synchro point " + (typeof debug == "string"?debug+": ":": ") + count + " / " + expected);
 				}
 				if (count == expected) {
 					callback(results);
@@ -196,7 +196,6 @@ var fullproof = (function(NAMESPACE) {
 					loadQueue.push(arguments[i]);
 				}
 			}
-			console.log("loadQueue set to " + loadQueue.join(", "));
 			return this;
 		}
 		

@@ -26,9 +26,6 @@ fullproof.store = (function(NAMESPACE) {
 		
 		this.createIndex = function(name, successCallback, errorCallback) {
 			var error = fullproof.make_callback_caller(errorCallback);
-			error = function() {
-				console.log("ERROR sql", arguments);
-			};
 			var tablename = meta.tablename;
 			store.db.transaction(function(tx) {
 				sql_table_exists_or_empty(tx, name, function(exists) {
