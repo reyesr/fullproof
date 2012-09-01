@@ -1,5 +1,24 @@
-var fullproof = fullproof || {};
-fullproof.store = (function(NAMESPACE) {
+/*
+ * Copyright 2012 Rodrigo Reyes
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
+var fullproof = fullproof || {};
+fullproof.store = fullproof.store||{};
+
+(function() {
+"use strict";
 
 	function WebSQLStoreIndex() {
 		this.db = null;
@@ -119,10 +138,13 @@ fullproof.store = (function(NAMESPACE) {
 					callback(store);
 				}, fullproof.make_callback_caller(errorCallback,false))});
 	}
-	
-	NAMESPACE.WebSQLStore = function(){
-		if (!(this instanceof NAMESPACE.WebSQLStore)) {
-			return new NAMESPACE.WebSQLStore();
+
+	/**
+	 * @constructor
+	 */
+	fullproof.store.WebSQLStore = function(){
+		if (!(this instanceof fullproof.store.WebSQLStore)) {
+			return new fullproof.store.WebSQLStore();
 		}
 		
 		this.capabilities = new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(window.openDatabase).setUseScores([true,false]);
@@ -135,13 +157,13 @@ fullproof.store = (function(NAMESPACE) {
 		this.dbSize = 1024*1024*5;
 	};
 	
-	NAMESPACE.WebSQLStore.prototype.setOptions = function(params) {
+	fullproof.store.WebSQLStore.prototype.setOptions = function(params) {
 		this.dbSize = params.dbSize||this.dbSize;
 		this.dbName = params.dbName||this.dbName;
 		return this;
 	};
 
-	NAMESPACE.WebSQLStore.prototype.openStore = function(parameters, callback) {
+	fullproof.store.WebSQLStore.prototype.openStore = function(parameters, callback) {
 		this.opened = false;
 		this.tableName = name;
 		if (parameters.getDbName() !== undefined) {
@@ -158,12 +180,12 @@ fullproof.store = (function(NAMESPACE) {
 			}, fullproof.make_callback_caller(callback,false));
 	};
 
-	NAMESPACE.WebSQLStore.prototype.closeStore = function(callback) {
+	fullproof.store.WebSQLStore.prototype.closeStore = function(callback) {
 		this.opened = false;
 		callback(this);
 	};
 	
-	NAMESPACE.WebSQLStore.prototype.openIndex = function(name, parameters, initializer, callback) {
+	fullproof.store.WebSQLStore.prototype.openIndex = function(name, parameters, initializer, callback) {
 		if (this.opened == false || !this.meta) {
 			return callback(false);
 		}
@@ -198,7 +220,7 @@ fullproof.store = (function(NAMESPACE) {
 		});				
 	}; 
 	
-	NAMESPACE.WebSQLStore.prototype.closeIndex = function(name, callback) {
+	fullproof.store.WebSQLStore.prototype.closeIndex = function(name, callback) {
 		delete this.tables[name];
 		callback(this);
 	};
@@ -298,6 +320,4 @@ fullproof.store = (function(NAMESPACE) {
 		});
 	};
 	
-	return NAMESPACE;
-
-})(fullproof.store||{});
+})();

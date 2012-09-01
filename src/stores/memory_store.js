@@ -1,5 +1,24 @@
-var fullproof = fullproof || {};
-fullproof.store = (function(NAMESPACE) {
+/*
+ * Copyright 2012 Rodrigo Reyes
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
+var fullproof = fullproof || {};
+fullproof.store = fullproof.store||{};
+
+(function() {
+"use strict";
 
 	function MemoryStoreIndex() {
 		this.data= {};
@@ -7,10 +26,10 @@ fullproof.store = (function(NAMESPACE) {
 		this.storeScores = false;
 	};
 	
-	NAMESPACE.MemoryStore = function() {
+	fullproof.store.MemoryStore = function() {
 		
-		if (!(this instanceof NAMESPACE.MemoryStore)) {
-			return new NAMESPACE.MemoryStore(comparatorObject);
+		if (!(this instanceof fullproof.store.MemoryStore)) {
+			return new fullproof.store.MemoryStore(comparatorObject);
 		}
 
 		this.capabilities = new fullproof.Capabilities().setStoreObjects([true,false]).setVolatile(true).setAvailable(true).setUseScores([true,false]);
@@ -21,15 +40,15 @@ fullproof.store = (function(NAMESPACE) {
 		return this;
 	};
 
-	NAMESPACE.MemoryStore.prototype.openStore = function(parameters, callback) {
+	fullproof.store.MemoryStore.prototype.openStore = function(parameters, callback) {
 		callback(this);
 	};
-	NAMESPACE.MemoryStore.prototype.closeStore = function(callback) {
+	fullproof.store.MemoryStore.prototype.closeStore = function(callback) {
 		this.indexes = {};
 		callback(this);
 	};
 	
-	NAMESPACE.MemoryStore.prototype.openIndex = function(name, parameters, initializer, callback) {
+	fullproof.store.MemoryStore.prototype.openIndex = function(name, parameters, initializer, callback) {
 		var index = new MemoryStoreIndex();
 		var useScore = parameters.getUseScores()!==undefined?(parameters.getUseScores()):false;
 		index.comparatorObject = parameters.getComparatorObject()?parameters.getComparatorObject():(useScore?fullproof.ScoredElement.comparatorObject:undefined);
@@ -45,7 +64,7 @@ fullproof.store = (function(NAMESPACE) {
 		}
 	};
 	
-	NAMESPACE.MemoryStore.prototype.closeIndex = function(name, callback) {
+	fullproof.store.MemoryStore.prototype.closeIndex = function(name, callback) {
 		delete this.indexes[name];
 		callback(this);
 	};
@@ -96,7 +115,5 @@ fullproof.store = (function(NAMESPACE) {
 		return this;
 	};
 
-	
-	return NAMESPACE;
 
-})(fullproof.store||{});
+})();

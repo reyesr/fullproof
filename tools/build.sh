@@ -15,7 +15,7 @@ ROOT=`readlink -e "$ROOT"`
 
 BUILD="$ROOT"/build
 
-BASE="$ROOT/src/*.js  $ROOT/src/stores/*.js"
+BASE="$ROOT/src/*.js  $ROOT/src/stores/*.js $ROOT/src/misc/*.js"
 UNICODE="$ROOT/src/unicode/categ_letters_numbers.js $ROOT/src/unicode/normalizer_lowercase_nomark.js $ROOT/src/unicode/unicode.js"
 ENGLISH=$ROOT/src/normalizers/english/*.js
 FRENCH=$ROOT/src/normalizers/french/*.js
@@ -68,4 +68,11 @@ fi
 "$BUILDER" "$BUILD"/fullproof-all.js $BASE $UNICODE $ENGLISH $FRENCH
 
 ls -la "$BUILD"
+
+if [[ "$JSDOC" != "" ]] ; then
+	echo "now building documentation"
+	DOC="$BUILD/docs"
+	mkdir -p "$DOC"
+	"$JSDOC" -d="$DOC" $BASE $ENGLISH $FRENCH
+fi
 
