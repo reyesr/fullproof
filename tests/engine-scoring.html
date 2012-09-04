@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Javascript Search Engine : Scoring Engine testing</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+<script type="text/javascript" src="../src/unicode/categ_letters_numbers.js"></script>
+<script type="text/javascript" src="../src/unicode/normalizer_lowercase_nomark.js"></script>
+<script type="text/javascript" src="../src/unicode/unicode.js"></script>
+<script type="text/javascript" src="../src/analyzers.js"></script>
+<script type="text/javascript" src="../src/stores/memory_store.js"></script>
+<script type="text/javascript" src="../src/stores/websql_store.js"></script>
+<script type="text/javascript" src="../src/utils.js"></script>
+<script type="text/javascript" src="../src/resultsets.js"></script>
+<script type="text/javascript" src="../src/scoring-engine.js"></script>
+<script type="text/javascript" src="../src/common-engine.js"></script>
+<script type="text/javascript" src="../src/storemanager.js"></script>
+<script type="text/javascript" src="../src/capabilities.js"></script>
+
+
+<script type="text/javascript" src="http://code.jquery.com/qunit/qunit-git.js"></script>
+<link rel="stylesheet" type="text/css" href="http://code.jquery.com/qunit/qunit-git.css"></link>
+
+<script type="text/javascript" src="common-testutils.js"></script>
+<script type="text/javascript" src="test-scoring-engine.js"></script>
+
+<style TYPE="text/css">
+
+div.floatbox {
+	float:left; width: 300px;
+}
+div.resultbox {
+	border: 1px solid black; margin:0.5em;
+	color: black; background-color: #EEEEEE;
+	overflow: hidden;
+}
+textarea.typebox {
+	float: left;
+	width: 300px; height: 200px; margin:1em;"
+	color: black; background-color: white;
+}
+</style>
+</head>
+<body>
+<h1>Testing the Stores</h1>
+
+<div id="qunit"></div>
+
+</body>
+</html>
