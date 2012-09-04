@@ -41,6 +41,18 @@ var fullproof = fullproof||{};
 		callback(false);
 	};
 	
+	function arguments_to_array(args) {
+		var result = [];
+		for (var i=0; i<args.length; ++i) {
+			if (args[i].constructor == Array) {
+				result = result.concat(args[i]);
+			} else {
+				result.push(args[i]);
+			}
+		}
+		return result;
+	}
+	
 	/**
 	 * An analyzer with a parse() method. An analyzer does more than
 	 * just parse, as it normalizes each word calling the sequence
@@ -53,21 +65,14 @@ var fullproof = fullproof||{};
 	 */
 	fullproof.StandardAnalyzer = function() {
 		
-		// Stores the normalizers... (don't store arguments, as it contains much more that the array) 
-		var normalizers = [];
-		for (var i=0; i<arguments.length; ++i) {
-			if (arguments[i].constructor == Array) {
-				normalizers = normalizers.concat(arguments[i]);
-			} else {
-				normalizers.push(arguments[i]);
-			}
-		}
-
 		// Enforces new object
 		if (!(this instanceof fullproof.StandardAnalyzer)) {
 			return new fullproof.StandardAnalyzer(normalizers);
 		}
-		
+
+		// Stores the normalizers... (don't store arguments, as it contains more than an array) 
+		var normalizers = arguments_to_array(arguments);
+		this.provideScore = false;
 		/**
 		 * When true, the parser calls its callback function with 
 		 * the parameter {boolean}false when complete. This allows
@@ -95,7 +100,8 @@ var fullproof = fullproof||{};
 							word = normalizers[i](word);
 						}
 					}
-					if (callback) {
+
+					if (callback && word && word != "") {
 						callback(word);
 					}
 				} else if (word===false && self.sendFalseWhenComplete && callback) {
@@ -118,5 +124,64 @@ var fullproof = fullproof||{};
 			this.parse(text, parser_synchro);
 		};
 	};
+
+	fullproof.ScoringAnalyzer = function() {
+		// Stores the normalizers... (don't store arguments, as it contains more than an array) 
+		var normalizers = arguments_to_array(arguments);
+		var analyzer = new fullproof.StandardAnalyzer(normalizers);
+		this.sendFalseWhenComplete = analyzer.sendFalseWhenComplete = true;
+		this.provideScore = true;
 		
+		this.parse = function(text, callback) {
+			var words = {};
+			var wordcount = 0;
+			var totalwc = 0;
+			var self = this;
+			analyzer.parse(text, function(word) {
+				if (word !== false) {
+					if (words[word] === undefined) {
+						words[word] = [];
+					}
+					words[word].push(wordcount);
+					totalwc += ++wordcount;
+				} else {
+					// Evaluate the score for each word
+					for (var w in words) {
+						var res = words[w];
+						var offsetcount = 1;
+						var occboost = 0;
+						for (var i=0;i<res.length; ++i) {
+							occboost += (3.1415 - Math.log(1+res[i]))/10;
+						}
+						var countboost = Math.abs(Math.log(1+res.length))/10;
+						var score = 1 + occboost*1.5 + countboost*3;
+						// console.log(w + ": " + words[w].join(",") + ", countboost: " + countboost + ", occboost: " + occboost);
+						callback(new fullproof.ScoredEntry(w, undefined, score));
+					}
+					
+					if (self.sendFalseWhenComplete == true) {
+						callback(false);
+					}
+					
+				}
+			});
+		}
+		
+		/**
+		 * Sometimes it's convenient to receive the whole set of words cut and normalized by the
+		 * analyzer. This method calls the callback parameter only once, with as single parameter
+		 * an array of normalized words.
+		 * @param text some text to analyze
+		 * @param callback a function called with an array (possibly empty) of string
+		 */
+		this.getArray = function(text, callback) {
+			var parser_synchro = fullproof.make_synchro_point(function(array_of_words) {
+				callback(array_of_words);
+			});
+			this.parse(text, parser_synchro);
+		};
+
+	};
+	
+	
 })();

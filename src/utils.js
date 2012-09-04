@@ -32,6 +32,20 @@ fullproof.ScoredElement.prototype.toString = function() {
 	return "["+this.value+"|"+this.score+"]";
 };
 
+fullproof.ScoredElement.comparatorObject = {
+		lower_than: function(a,b) {
+			return a.value<b.value;
+		},
+		equals: function(a,b) {
+			return a.value==b.value;
+		}
+	};
+fullproof.ScoredElement.prototype.comparatorObject = fullproof.ScoredElement.comparatorObject;
+
+fullproof.ScoredElement.mergeFn = function(a,b) {
+	return new fullproof.ScoredElement(a.value, a.score + b.score);
+};
+
 /**
  * Associates a key (typically a word), a value, and a score.
  * @constructor
@@ -50,16 +64,7 @@ fullproof.ScoredEntry = function(key, value, score) {
 }
 fullproof.ScoredEntry.prototype = new fullproof.ScoredElement();
 
-fullproof.ScoredEntry.comparatorObject = {
-		lower_than: function(a,b) {
-			return a.value<b.value;
-		},
-		equals: function(a,b) {
-			return a.value==b.value;
-		}
-	};
-
-fullproof.ScoredElement.comparatorObject = fullproof.ScoredEntry.comparatorObject;
+fullproof.ScoredEntry.comparatorObject = fullproof.ScoredElement.comparatorObject;
 
 
 

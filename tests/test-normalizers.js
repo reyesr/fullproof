@@ -42,3 +42,34 @@ test("remove_duplicate_letters", function() {
 	equal(fullproof.normalizer.remove_duplicate_letters("ThISSS IZZZ A TEST"), "ThIS IZ A TEST");
 });
 
+test("standard analyzer", function() {
+	var stda = new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark);
+	expect(5);
+	var sync = fullproof.make_synchro_point(function(words) {
+		equal(words.length, 4);
+		equal(words[0], "this");
+		equal(words[1], "is");
+		equal(words[2], "a");
+		equal(words[3], "test");
+	});
+	stda.parse("this is a test", sync);
+});
+
+test("scoring analyzer", function() {
+	var stda = new fullproof.ScoringAnalyzer(fullproof.normalizer.to_lowercase_nomark);
+	expect(7);
+	var sync = fullproof.make_synchro_point(function(words) {
+		equal(words.length, 15);
+		
+		equal(words[0].value, "this");
+		equal(words[1].value, "is");
+		equal(words[2].value, "a");
+		equal(words[3].value, "test");
+		
+		// Need test on scoring here
+		ok(words[0].score > words[1].score);
+		ok(words[2].score > words[1].score);
+		console.log("scoring 1", words);
+	});
+	stda.parse("this is a test longer than the previous one, but not that long for a test though", sync);
+});

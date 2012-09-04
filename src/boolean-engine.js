@@ -34,78 +34,30 @@ fullproof.CONST_MODE_WEIGHTED_UNION = 3;
  *  
  * @constructor
  */
-fullproof.BooleanEngine = function(dbName) {
+fullproof.BooleanEngine = function() {
 
 	if (!(this instanceof fullproof.BooleanEngine)) {
-		return new fullproof.BooleanEngine(dbName);
+		return new fullproof.BooleanEngine();
 	}
-
-	var stores = [];
-	this.storeManager = new fullproof.StoreManager();
+	
+	this.initAbstractEngine(); // Init from the prototype
+	
+	/**
+	 * The working mode when gathering result sets.
+	 */
 	this.booleanMode = fullproof.CONST_MODE_INTERSECT;
-	
-	this.addIndex = function(name, analyzer, capabilities, initializer, completionCallback) {
-		var self = this;
-		var indexData = {
-			name: name,
-			parser: analyzer,
-			caps: capabilities
-		};
-		
-		this.storeManager.openIndex(name, capabilities, 
-				function(index ,callback) {
-					var injector = new fullproof.TextInjector(index, analyzer);
-					initializer(injector, callback);
-				}, function(index) {
-					if (index) {
-						indexData.index = index;
-						stores.push(indexData);
-						completionCallback(index);
-					} else {
-						completionCallback(false);
-					}
-				});
-	}
-	
-	this.injectDocument = function(key, text, callback) {
-		var synchro = fullproof.make_synchro_point(function(data) {
-			callback();
-		});
-		
-		for (var i=0; i<stores.length; ++i) {
-			var obj = stores[i];
-			obj.parser.parse(text, function(word) {
-				if (word) {
-					obj.store.inject(word, key, synchro); // the line number is the value stored
-				} else {
-					synchro(false);
-				}
-			});
-		}
-	}
-
-	this.clear = function(callback) {
-		if (stores.length == 0) {
-			callback();
-		} else {
-			var synchro = fullproof.make_synchro_point(callback, stores.length);
-			for (var i=0; i<stores.length; ++i) {
-				stores[i].index.clear(synchro);
-			}
-		}
-	};
 	
 	this.lookup = function(text, callback, /* private */storeIndex) {
 		if (storeIndex === undefined) {
 			storeIndex = 0;
 		}
 		var self = this;
-		var store = stores[storeIndex];
+		var store = this.stores[storeIndex];
 
 		store.parser.parse(text, fullproof.make_synchro_point(function(array_of_words) {
 			
 			if (!array_of_words || array_of_words.length == 0) {
-				if (stores.length > storeIndex+1) {
+				if (self.stores.length > storeIndex+1) {
 					return self.lookup(text, callback, storeIndex+1);
 				} else {
 					return callback(false);
@@ -128,7 +80,7 @@ fullproof.BooleanEngine = function(dbName) {
 				}
 				
 				if (curset.getSize() ==0) {
-					if (stores.length > storeIndex+1) {
+					if (self.stores.length > storeIndex+1) {
 						self.lookup(text, callback, storeIndex+1);
 					} else {
 						callback(false);

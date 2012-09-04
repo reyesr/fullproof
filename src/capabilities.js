@@ -125,6 +125,19 @@ fullproof.Capabilities.prototype.getDbSize= function() {
 /**
  * 
  */
+fullproof.Capabilities.prototype.setScoreModifier = function(modifier) {
+	this.scoreModifier = modifier;
+	return this;
+}
+/**
+ * 
+ */
+fullproof.Capabilities.prototype.getScoreModifier = function() {
+	return this.scoreModifier;
+}
+/**
+ * 
+ */
 fullproof.Capabilities.prototype.isCompatibleWith= function(otherCapabilities) {
 	var objstore = this.matchValue(this.canStoreObjects, otherCapabilities.canStoreObjects);
 	var isvol = this.matchValue(this.isVolatile, otherCapabilities.isVolatile);

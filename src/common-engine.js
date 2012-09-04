@@ -43,7 +43,13 @@ fullproof.TextInjector.prototype.inject = function(text,value,callback) {
 	this.analyzer.getArray(text, function(array_of_words) {
 		var synchro = fullproof.make_synchro_point(callback, array_of_words.length);
 		for (var i=0; i<array_of_words.length; ++i) {
-			self.index.inject(array_of_words[i], value, synchro); // the line number is the value stored
+			var val = array_of_words[i];
+			if (val instanceof fullproof.ScoredEntry) {
+				val.value = val.value===undefined?value:val.value;
+				self.index.inject(val.key, val, synchro); // the line number is the value stored
+			} else {
+				self.index.inject(array_of_words[i], value, synchro); // the line number is the value stored
+			}
 		}
 	});
 };
@@ -69,8 +75,15 @@ fullproof.TextInjector.prototype.injectBulk = function(textArray, valueArray, ca
 		(function(text,value) {
 			self.analyzer.getArray(text, function(array_of_words) {
 				for (var w=0; w<array_of_words.length; ++w) {
-					words.push(array_of_words[w]);
-					values.push(value);
+					var val = array_of_words[i];
+					if (val instanceof fullproof.ScoredEntry) {
+						val.value = val.value===undefined?value:val.value;
+						words.push(val.key);
+						values.push(val);
+					} else {
+						words.push(array_of_words[w]);
+						values.push(value);
+					}
 				}
 			});
 		})(textArray[i], valueArray[i]);
@@ -96,3 +109,72 @@ fullproof.AbstractEngine.prototype.addIndexes =  function(indexes, callback) {
 	}
 }
 
+fullproof.AbstractEngine.prototype.checkCapabilities = function(capabilities, analyzer) {
+	return true;
+}
+
+fullproof.AbstractEngine.prototype.addIndex = function(name, analyzer, capabilities, initializer, completionCallback) {
+	var self = this;
+	var indexData = {
+		name: name,
+		parser: analyzer,
+		caps: capabilities,
+	};
+
+	if (!this.checkCapabilities(capabilities, analyzer)) {
+		return completionCallback(false);
+	}
+	
+	this.storeManager.openIndex(name, capabilities, 
+			function(index ,callback) {
+				var injector = new fullproof.TextInjector(index, analyzer);
+				initializer(injector, callback);
+			}, function(index) {
+				if (index) {
+					indexData.index = index;
+					if (self.stores === undefined) {
+						self.stores = [];
+					}
+					self.stores.push(indexData);
+					completionCallback(index);
+				} else {
+					completionCallback(false);
+				}
+			});
+};
+
+
+fullproof.AbstractEngine.prototype.injectDocument = function(key, text, callback) {
+	var synchro = fullproof.make_synchro_point(function(data) {
+		callback();
+	});
+
+	if (this.stores && this.stores.length) {
+		for (var i=0; i<this.stores.length; ++i) {
+			var obj = this.stores[i];
+			obj.parser.parse(text, function(word) {
+				if (word) {
+					obj.store.inject(word, key, synchro); // the line number is the value stored
+				} else {
+					synchro(false);
+				}
+			});
+		}
+	}
+};
+
+fullproof.AbstractEngine.prototype.clear = function(callback) {
+	if (this.stores && this.stores.length) {
+		var synchro = fullproof.make_synchro_point(callback, this.stores.length);
+		for (var i=0; i<this.stores.length; ++i) {
+			this.stores[i].index.clear(synchro);
+		}
+	} else {
+		callback();
+	}
+};
+
+fullproof.AbstractEngine.prototype.initAbstractEngine = function() {
+	this.stores = [];
+	this.storeManager = new fullproof.StoreManager();
+}

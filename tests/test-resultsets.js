@@ -14,8 +14,6 @@ function CustomObject(id) {
 var CO = CustomObject;
 var COMP = {
 		lower_than: function(a,b) {
-//			var res = parseInt(a.id) < parseInt(b.id);
-//			console.log((typeof a.id) + ":" + a.id + " < " + (typeof b.id) + ":" + b.id + " = " + res);
 			return parseInt(a.id) < parseInt(b.id);
 		},
 		equals: function(a,b) {

@@ -83,236 +83,282 @@ var fullproof = fullproof || {};
 		if (!(this instanceof fullproof.ResultSet)) {
 			return new fullproof.ResultSet(comparatorObject);
 		}
-		comparatorObject = comparatorObject||defaultComparator;
-		
-		var data = [];
-		this.EXPOSED_REMOVED = data;
-
-		var last_insert = undefined;
-
-		/**
-		 * Insert values into the array of data managed by this ResultSet. The insertion is optimized 
-		 * when the inserted values are greater than the last inserted values (the value is just pushed
-		 * to the end of the array). Otherwise, a binary search is done in the array to find the correct
-		 * offset where to insert the value. When possible, always insert sorted data.
-		 * 
-		 * @param values... any number of values to insert in this resultset.
-		 */
-		this.insert = function() {
-			for (var i=0; i<arguments.length; ++i) {
-				var obj = arguments[i];
-				
-				if (last_insert && comparatorObject.lower_than(last_insert,obj)) {
-					data.push(obj);
-					last_insert = obj
-				} else {
-					var index = fullproof.binary_search(data, obj, undefined, undefined, comparatorObject.lower_than);
-					if (index >= data.length) {
-						data.push(obj);
-						last_insert = obj
-					} else if (comparatorObject.equals(obj, data[index]) == false) {
-						data.splice(index, 0, arguments[i]);
-						last_insert = undefined;
-					}
-				}
-			}
-			return this;
-		};
-		
-		/**
-		 * Union operation. Merge another ResultSet or a sorted javascript array into this ResultSet.
-		 * If the same value exists in both sets, it is not injected in the current set, to avoid duplicate values.
-		 * @param set another ResultSet, or an array of sorted values
-		 * @return this ResultSet, possibly modified by the merge operation
-		 */
-		this.merge = function(set) {;
-			last_insert = undefined;
-			var other = false;
-			if (set.constructor == Array) {
-				other = set;
-			} else if (set instanceof fullproof.ResultSet) {
-				other = set.getDataUnsafe();
-			}
-			
-			if (other) {
-				var result = [];
-				var ddd = data;
-				var i=0,j=0,maxi=data.length,maxj=other.length;
-				var r = -1;
-				while (i<maxi || j<maxj) {
-					var goi = false;
-					if (i<maxi && j<maxj) {
-						if (comparatorObject.lower_than(data[i],other[j])) {
-							goi = true;
-						}
-					} else if (i<maxi) {
-						goi = true;
-					}
-					
-					if (goi) {
-						if (result.length==0 || (!comparatorObject.equals(data[i],result[r]))) {
-							result.push(data[i]);
-							++r;
-						}
-						++i;
-					} else {
-						if (result.length==0 || (!comparatorObject.equals(other[j],result[r]))) {
-							result.push(other[j]);
-							++r;
-						}
-						++j;
-					}
-				}
-				data = result;
-				this.EXPOSED_REMOVED = data;
-				
-			}
-			return this;
-		};
-
-		/**
-		 * Intersect operation. Modify the current ResultSet so that is only contain values that are also contained by another ResultSet or array.
-		 * @param set another ResultSet, or an array of sorted values
-		 * @return this ResultSet, possibly modified by the intersect operation
-		 */
-		this.intersect = function(set) {
-			last_insert = undefined;
-			var other = false;
-			if (set.constructor == Array) {
-				other = set;
-			} else if (set instanceof fullproof.ResultSet) {
-				other = set.getDataUnsafe();
-			}
-			
-			if (other) {
-				var result = [];
-				var i=0,j=0,maxi=data.length,maxj=other.length;
-				while (i<maxi) {
-					while (j<maxj && comparatorObject.lower_than(other[j],data[i])) {
-						++j;
-					}
-					if (j<maxj && comparatorObject.equals(other[j],data[i])) {
-						result.push(other[j]);
-						++i; 
-						++j;
-					} else {
-						i++;
-					}
-				}
-				data = result;
-				this.EXPOSED_REMOVED = data;
-			} else {
-				data = [];
-				this.EXPOSED_REMOVED = data;
-			}
-			return this;
-		}
-
-		/**
-		 * Substraction operation. Modify the current ResultSet so that any value contained in the provided set of values are removed.
-		 * @param set another ResultSet, or an array of sorted values
-		 * @return this ResultSet, possibly modified by the substract operation
-		 */
-		this.substract = function(set) {
-			last_insert = undefined;
-			var other = false;
-			if (set.constructor == Array) {
-				other = set;
-			} else if (set instanceof fullproof.ResultSet) {
-				other = set.getDataUnsafe();
-			}
-			
-			if (other) {
-				var result = [];
-				var i=0,j=0,maxi=data.length,maxj=other.length;
-				while (i<maxi) {
-					while (j<maxj && comparatorObject.lower_than(other[j],data[i])) {
-						++j;
-					}
-					if (j<maxj && comparatorObject.equals(other[j],data[i])) {
-						++i; 
-						++j;
-					} else {
-						result.push(data[i]);
-						i++;
-					}
-				}
-				data = result;
-				this.EXPOSED_REMOVED = data;
-			} else {
-				data = [];
-				this.EXPOSED_REMOVED = data;
-			}
-			
-			return this;
-		};
-
-		/**
-		 * Returns the value stored at a given offset
-		 * @param i the offset of the value
-		 * @return a value stored by the resultset 
-		 */
-		this.getItem = function(i) {
-			return data[i];
-		}
-		
-		/**
-		 * Returns the sorted javascript array managed by this ResultSet.
-		 */
-		this.getDataUnsafe = function() {
-			return data;
-		}
-		/**
-		 * Sets the sorted array managed by this ResultSet.
-		 * @param sorted_array a sorted array
-		 * @return this ResultSet instance
-		 */
-		this.setDataUnsafe = function(sorted_array) {
-			last_insert = undefined;
-			data = sorted_array;
-			this.EXPOSED_REMOVED = data;
-			return this;
-		}
-
-		/**
-		 * Returns a string representation of this object's data.
-		 * @return a string
-		 */
-		this.toString = function() {
-			return data.join(",");
-		}
-
-		/**
-		 * Iterates over all the element of the array, and calls the provided function with each values.
-		 * @param callback the function called with each element of the array
-		 * @return this ResultSet instance
-		 */
-		this.forEach = function(callback) {
-			for (var i=0,max=data.length; i<max; ++i) {
-				callback(data[i]);
-			}
-			return this;
-		}
-
-		/**
-		 * Return the size of the managed array.
-		 */
-		this.getSize = function() {
-			return data.length;
-		}
-		
-		/**
-		 * Creates a clone of this result set. The managed array is cloned too, but not
-		 * the values it contains.
-		 * @return a copy of this ResultSet.
-		 */
-		this.clone = function() {
-			var clone = new fullproof.ResultSet;
-			clone.setDataUnsafe(data.slice(0));
-			return clone;
-		}
-		
+		this.comparatorObject = comparatorObject||defaultComparator;
+		this.data = [];
+		this.last_insert = undefined;
 	};
 
+	/**
+	 * Insert values into the array of data managed by this ResultSet. The insertion is optimized 
+	 * when the inserted values are greater than the last inserted values (the value is just pushed
+	 * to the end of the array). Otherwise, a binary search is done in the array to find the correct
+	 * offset where to insert the value. When possible, always insert sorted data.
+	 * 
+	 * @param values... any number of values to insert in this resultset.
+	 */
+	fullproof.ResultSet.prototype.insert = function() {
+		for (var i=0; i<arguments.length; ++i) {
+			var obj = arguments[i];
+			
+			if (this.last_insert && this.comparatorObject.lower_than(this.last_insert,obj)) {
+				this.data.push(obj);
+				this.last_insert = obj
+			} else {
+				var index = fullproof.binary_search(this.data, obj, undefined, undefined, this.comparatorObject.lower_than);
+				if (index >= this.data.length) {
+					this.data.push(obj);
+					this.last_insert = obj
+				} else if (this.comparatorObject.equals(obj, this.data[index]) == false) {
+					this.data.splice(index, 0, arguments[i]);
+					this.last_insert = undefined;
+				}
+			}
+		}
+		return this;
+	};
+
+	/**
+	 * Union operation. Merge another ResultSet or a sorted javascript array into this ResultSet.
+	 * If the same value exists in both sets, it is not injected in the current set, to avoid duplicate values.
+	 * @param set another ResultSet, or an array of sorted values
+	 * @return this ResultSet, possibly modified by the merge operation
+	 */
+	/*
+	fullproof.ResultSet.prototype.merge = function(set) {;
+		this.last_insert = undefined;
+		var other = false;
+		if (set.constructor == Array) {
+			other = set;
+		} else if (set instanceof fullproof.ResultSet) {
+			other = set.getDataUnsafe();
+		}
+		
+		if (other) {
+			var result = [];
+			var ddd = this.data;
+			var i=0,j=0,maxi=this.data.length,maxj=other.length;
+			var r = -1;
+			while (i<maxi || j<maxj) {
+				var goi = false;
+				if (i<maxi && j<maxj) {
+					if (this.comparatorObject.lower_than(this.data[i],other[j])) {
+						goi = true;
+					}
+				} else if (i<maxi) {
+					goi = true;
+				}
+				
+				if (goi) {
+					if (result.length==0 || (!this.comparatorObject.equals(this.data[i],result[r]))) {
+						result.push(this.data[i]);
+						++r;
+					}
+					++i;
+				} else {
+					if (result.length==0 || (!this.comparatorObject.equals(other[j],result[r]))) {
+						result.push(other[j]);
+						++r;
+					}
+					++j;
+				}
+			}
+			this.data = result;
+		}
+		return this;
+	};*/
+
+	function defaultMergeFn(a,b) {
+		return a;
+	}
+	
+	/**
+	 * Union operation. Merge another ResultSet or a sorted javascript array into this ResultSet.
+	 * If the same value exists in both sets, it is not injected in the current set, to avoid duplicate values.
+	 * @param set another ResultSet, or an array of sorted values
+	 * @return this ResultSet, possibly modified by the merge operation
+	 */
+	fullproof.ResultSet.prototype.merge = function(set, mergeFn) {
+		mergeFn = mergeFn||defaultMergeFn;
+		this.last_insert = undefined;
+		var other = false;
+		
+		if (set.constructor == Array) {
+			other = set;
+		} else if (set instanceof fullproof.ResultSet) {
+			other = set.getDataUnsafe();
+		}
+
+		
+		var i1=0, max1=this.data.length, 
+		i2=0, max2=other.length,
+		obj1=null,obj2=null;
+		var comp = this.comparatorObject;
+		
+		var result = [];
+		while (i1 < max1 && i2<max2) {
+			obj1 = this.data[i1];
+			obj2 = other[i2];
+			if (comp.equals(obj1, obj2)) {
+				result.push(mergeFn(obj1,obj2));
+				++i1; ++i2;
+			} else if (comp.lower_than(obj1,obj2)) {
+				result.push(obj1);
+				++i1;
+			} else {
+				result.push(obj2);
+				++i2;
+			}
+		}
+		while (i1 < max1) {
+			result.push(this.data[i1]);
+			++i1;
+		}
+		while (i2 < max2) {
+			result.push(other[i2]);
+			++i2;
+		}
+		this.data = result;
+		return this;
+	}
+	
+
+	/**
+	 * Intersect operation. Modify the current ResultSet so that is only contain values that are also contained by another ResultSet or array.
+	 * @param set another ResultSet, or an array of sorted values
+	 * @return this ResultSet, possibly modified by the intersect operation
+	 */
+	fullproof.ResultSet.prototype.intersect = function(set) {
+		this.last_insert = undefined;
+		var other = false;
+		if (set.constructor == Array) {
+			other = set;
+		} else if (set instanceof fullproof.ResultSet) {
+			other = set.getDataUnsafe();
+		}
+		
+		if (other) {
+			var result = [];
+			var i=0,j=0,maxi=this.data.length,maxj=other.length;
+			while (i<maxi) {
+				while (j<maxj && this.comparatorObject.lower_than(other[j],this.data[i])) {
+					++j;
+				}
+				if (j<maxj && this.comparatorObject.equals(other[j],this.data[i])) {
+					result.push(other[j]);
+					++i; 
+					++j;
+				} else {
+					i++;
+				}
+			}
+			this.data = result;
+		} else {
+			this.data = [];
+		}
+		return this;
+	}		
+
+	
+	/**
+	 * Substraction operation. Modify the current ResultSet so that any value contained in the provided set of values are removed.
+	 * @param set another ResultSet, or an array of sorted values
+	 * @return this ResultSet, possibly modified by the substract operation
+	 */
+	fullproof.ResultSet.prototype.substract = function(set) {
+		this.last_insert = undefined;
+		var other = false;
+		if (set.constructor == Array) {
+			other = set;
+		} else if (set instanceof fullproof.ResultSet) {
+			other = set.getDataUnsafe();
+		}
+		
+		if (other) {
+			var result = [];
+			var i=0,j=0,maxi=this.data.length,maxj=other.length;
+			while (i<maxi) {
+				while (j<maxj && this.comparatorObject.lower_than(other[j],this.data[i])) {
+					++j;
+				}
+				if (j<maxj && this.comparatorObject.equals(other[j],this.data[i])) {
+					++i; 
+					++j;
+				} else {
+					result.push(this.data[i]);
+					i++;
+				}
+			}
+			this.data = result;
+		} else {
+			this.data = [];
+		}
+		
+		return this;
+	};
+
+	/**
+	 * Returns the value stored at a given offset
+	 * @param i the offset of the value
+	 * @return a value stored by the resultset 
+	 */
+	fullproof.ResultSet.prototype.getItem = function(i) {
+		return this.data[i];
+	}
+
+	/**
+	 * Returns the sorted javascript array managed by this ResultSet.
+	 */
+	fullproof.ResultSet.prototype.getDataUnsafe = function() {
+		return this.data;
+	}
+
+	/**
+	 * Sets the sorted array managed by this ResultSet.
+	 * @param sorted_array a sorted array
+	 * @return this ResultSet instance
+	 */
+	fullproof.ResultSet.prototype.setDataUnsafe = function(sorted_array) {
+		this.last_insert = undefined;
+		this.data = sorted_array;
+		return this;
+	}
+
+	/**
+	 * Returns a string representation of this object's data.
+	 * @return a string
+	 */
+	fullproof.ResultSet.prototype.toString = function() {
+		return this.data.join(",");
+	}
+
+	/**
+	 * Iterates over all the element of the array, and calls the provided function with each values.
+	 * @param callback the function called with each element of the array
+	 * @return this ResultSet instance
+	 */
+	fullproof.ResultSet.prototype.forEach = function(callback) {
+		for (var i=0,max=this.data.length; i<max; ++i) {
+			callback(this.data[i]);
+		}
+		return this;
+	}
+
+	/**
+	 * Return the size of the managed array.
+	 */
+	fullproof.ResultSet.prototype.getSize = function() {
+		return this.data.length;
+	}
+
+	/**
+	 * Creates a clone of this result set. The managed array is cloned too, but not
+	 * the values it contains.
+	 * @return a copy of this ResultSet.
+	 */
+	fullproof.ResultSet.prototype.clone = function() {
+		var clone = new fullproof.ResultSet;
+		clone.setDataUnsafe(this.data.slice(0));
+		return clone;
+	};
 	
 })();

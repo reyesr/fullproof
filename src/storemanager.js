@@ -118,4 +118,10 @@ fullproof.StoreManager = function(storeDescriptors) {
 		return this.indexes[indexName];
 	}
 
+	this.forEach = function(callback) {
+		for (var k in indexes) {
+			callback(indexes[k]);
+		}
+	}
+	
 };
