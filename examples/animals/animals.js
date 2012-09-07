@@ -1,9 +1,6 @@
 var Animals = (function(){
 	
 	var engine = new fullproof.BooleanEngine();
-	engine.clear(function() {
-		
-	});
 	var data = [];
 	var dbName = "animals21";
 	

@@ -117,56 +117,6 @@ var fullproof = fullproof || {};
 		return this;
 	};
 
-	/**
-	 * Union operation. Merge another ResultSet or a sorted javascript array into this ResultSet.
-	 * If the same value exists in both sets, it is not injected in the current set, to avoid duplicate values.
-	 * @param set another ResultSet, or an array of sorted values
-	 * @return this ResultSet, possibly modified by the merge operation
-	 */
-	/*
-	fullproof.ResultSet.prototype.merge = function(set) {;
-		this.last_insert = undefined;
-		var other = false;
-		if (set.constructor == Array) {
-			other = set;
-		} else if (set instanceof fullproof.ResultSet) {
-			other = set.getDataUnsafe();
-		}
-		
-		if (other) {
-			var result = [];
-			var ddd = this.data;
-			var i=0,j=0,maxi=this.data.length,maxj=other.length;
-			var r = -1;
-			while (i<maxi || j<maxj) {
-				var goi = false;
-				if (i<maxi && j<maxj) {
-					if (this.comparatorObject.lower_than(this.data[i],other[j])) {
-						goi = true;
-					}
-				} else if (i<maxi) {
-					goi = true;
-				}
-				
-				if (goi) {
-					if (result.length==0 || (!this.comparatorObject.equals(this.data[i],result[r]))) {
-						result.push(this.data[i]);
-						++r;
-					}
-					++i;
-				} else {
-					if (result.length==0 || (!this.comparatorObject.equals(other[j],result[r]))) {
-						result.push(other[j]);
-						++r;
-					}
-					++j;
-				}
-			}
-			this.data = result;
-		}
-		return this;
-	};*/
-
 	function defaultMergeFn(a,b) {
 		return a;
 	}
@@ -323,6 +273,26 @@ var fullproof = fullproof || {};
 		return this;
 	}
 
+	/**
+	 * Changes the comparatorObject associated to this set, and sorts the data.
+	 * Use this function if you want to sort the data differently at some point.
+	 * @param comparatorObject the comparator to use
+	 * @return this ResultSet instance
+	 */
+	fullproof.ResultSet.prototype.setComparatorObject = function(comparatorObject) {
+		this.comparatorObject = comparatorObject;
+		var self = this;
+		this.data.sort(function(a,b) {
+			if (self.comparatorObject.lower_than(a,b)) {
+				return -1;
+			} else if (self.comparatorObject.equals(a,b)) {
+				return 0;
+			} else {
+				return 1;
+			}
+		});
+	};
+	
 	/**
 	 * Returns a string representation of this object's data.
 	 * @return a string

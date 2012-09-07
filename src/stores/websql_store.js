@@ -269,13 +269,13 @@ fullproof.store = fullproof.store||{};
 				processBulk(wArray, vArray);
 			}, curWords.length);
 			self.db.transaction(function(tx) {
+				console.log("Inserting " + curWords.length + " lines");
 				for (var i=0; i<curWords.length; ++i) {
 					var value = vArray[i];
-					if (value instanceof fullproof.ScoredElement) {
-						tx.executeSql("INSERT OR REPLACE INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [wArray[i], value.value, value.score], synchronizer, synchronizer);
+					if (value instanceof fullproof.ScoredEntry) {
+						tx.executeSql("INSERT INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [value.key, value.value, value.score], synchronizer, synchronizer);
 					} else {
-						
-						tx.executeSql("INSERT OR REPLACE INTO " + self.tableName + " (id,value) VALUES (?,?)", [wArray[i], value], 
+						tx.executeSql("INSERT INTO " + self.tableName + " (id,value) VALUES (?,?)", [wArray[i], value], 
 								function() {
 							synchronizer();
 						}, function() {
@@ -308,7 +308,7 @@ fullproof.store = fullproof.store||{};
 								if (item.score === null || item.score === undefined || item.score === false) {
 									result.push(item.value);
 								} else {
-									result.push(new fullproof.ScoredElement(item.value, item.score));
+									result.push(new fullproof.ScoredEntry(item.id, item.value, item.score));
 								}
 							}
 						}

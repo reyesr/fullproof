@@ -34,51 +34,20 @@ fullproof.AbstractEngine = fullproof.AbstractEngine || (function() {});
 fullproof.ScoringEngine.prototype = new fullproof.AbstractEngine;
 
 fullproof.ScoringEngine.prototype.checkCapabilities = function(capabilities, analyzer) {
-	if (capabilities.getUseScores() !== true || analyzer.provideScore !== true) {
-		return false;
+	if (capabilities.getUseScores() !== true) {
+		throw "capabilities.getUseScore() must be true";
+	}
+	if (analyzer.provideScore !== true) {
+		throw "analyzer.provideScore must be true";
 	}
 	if (!capabilities.getComparatorObject()) {
-		return false;
+		throw "capabilities.getComparatorObject() must return a valid comparator";
 	}
+	
 	return true;
 }
 
 fullproof.ScoringEngine.prototype.lookup = function(text, callback) {
-	
-//	function mergeScoreFn(score1,score2) {
-//		return score1 + score2;
-//	}
-//	
-//	function merge_by_score(rset1, rset2) {
-//		var i1=0, max1=rset1.getSize(), 
-//			i2=0, max2=rset2.getSize(),
-//			obj1=null,obj2=null;
-//		var comp = rset1.comparatorObject;
-//		var result = [];
-//		while (i1 < max1 && i2<max2) {
-//			obj1 = rset.getItem(i1);
-//			obj2 = rset.getItem(i2);
-//			if (comp.equals(obj1, obj2)) {
-//				// Merge scores
-//				result.push(new fullproof.ScoredElement(obj1.value, mergeScoreFn(obj1.score, obj2.score)));
-//			} else if (comp.lower_than(obj1,obj2)) {
-//				result.push(obj1);
-//				++i1;
-//			} else {
-//				result.push(obj2);
-//				++i2;
-//			}
-//		}
-//		while (i1 < max1) {
-//			result.push(obj1);
-//			++i1;
-//		}
-//		while (i2 < max2) {
-//			result.push(obj2);
-//			++i2;
-//		}
-//		return result;
-//	};
 	
 	function merge_resultsets(rset_array, storeDesc) {
 		if (rset_array.length == 0) {

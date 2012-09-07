@@ -75,13 +75,13 @@ fullproof.TextInjector.prototype.injectBulk = function(textArray, valueArray, ca
 		(function(text,value) {
 			self.analyzer.getArray(text, function(array_of_words) {
 				for (var w=0; w<array_of_words.length; ++w) {
-					var val = array_of_words[i];
+					var val = array_of_words[w];
 					if (val instanceof fullproof.ScoredEntry) {
 						val.value = val.value===undefined?value:val.value;
 						words.push(val.key);
 						values.push(val);
 					} else {
-						words.push(array_of_words[w]);
+						words.push(val);
 						values.push(value);
 					}
 				}
@@ -92,6 +92,11 @@ fullproof.TextInjector.prototype.injectBulk = function(textArray, valueArray, ca
 }; 
 
 fullproof.AbstractEngine = fullproof.AbstractEngine || (function() {});
+
+fullproof.AbstractEngine.prototype.checkCapabilities = function(capabilities, analyzer) {
+	return true;
+}
+
 
 fullproof.AbstractEngine.prototype.addIndexes =  function(indexes, callback) {
 	var starter = false;
@@ -109,16 +114,12 @@ fullproof.AbstractEngine.prototype.addIndexes =  function(indexes, callback) {
 	}
 }
 
-fullproof.AbstractEngine.prototype.checkCapabilities = function(capabilities, analyzer) {
-	return true;
-}
-
 fullproof.AbstractEngine.prototype.addIndex = function(name, analyzer, capabilities, initializer, completionCallback) {
 	var self = this;
 	var indexData = {
 		name: name,
 		parser: analyzer,
-		caps: capabilities,
+		caps: capabilities
 	};
 
 	if (!this.checkCapabilities(capabilities, analyzer)) {
@@ -127,6 +128,7 @@ fullproof.AbstractEngine.prototype.addIndex = function(name, analyzer, capabilit
 	
 	this.storeManager.openIndex(name, capabilities, 
 			function(index ,callback) {
+			console.log("Initializing index " + indexData.name +", " + indexData.caps, index);
 				var injector = new fullproof.TextInjector(index, analyzer);
 				initializer(injector, callback);
 			}, function(index) {
@@ -142,6 +144,10 @@ fullproof.AbstractEngine.prototype.addIndex = function(name, analyzer, capabilit
 				}
 			});
 };
+
+fullproof.AbstractEngine.prototype.getStoresMeta = function() {
+	return this.stores;
+}
 
 
 fullproof.AbstractEngine.prototype.injectDocument = function(key, text, callback) {
