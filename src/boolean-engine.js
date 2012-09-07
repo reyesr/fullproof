@@ -17,19 +17,6 @@
 var fullproof = fullproof||{};
 
 /**
- * @const
- */
-fullproof.CONST_MODE_INTERSECT = 1;
-/**
- * @const
- */
-fullproof.CONST_MODE_UNION = 2;
-/**
- * @const
- */
-fullproof.CONST_MODE_WEIGHTED_UNION = 3;
-
-/**
  * A boolean-set based engine.
  *  
  * @constructor
@@ -45,7 +32,7 @@ fullproof.BooleanEngine = function() {
 	/**
 	 * The working mode when gathering result sets.
 	 */
-	this.booleanMode = fullproof.CONST_MODE_INTERSECT;
+	this.booleanMode = fullproof.BooleanEngine.CONST_MODE_INTERSECT;
 	
 	this.lookup = function(text, callback, /* private */storeIndex) {
 		if (storeIndex === undefined) {
@@ -70,11 +57,11 @@ fullproof.BooleanEngine = function() {
 				while (rset_array.length > 0) {
 					var set = rset_array.shift();
 					switch(self.booleanMode) {
-					case fullproof.CONST_MODE_INTERSECT:
-						curset.intersect(set);
-						break;
-					case fullproof.CONST_MODE_UNION:
+					case fullproof.BooleanEngine.CONST_MODE_UNION:
 						curset.merge(set);
+						break;
+					default: // default is intersect
+						curset.intersect(set);
 						break;
 					}
 				}
@@ -100,3 +87,11 @@ fullproof.BooleanEngine = function() {
 }
 fullproof.AbstractEngine = fullproof.AbstractEngine || (function() {});
 fullproof.BooleanEngine.prototype = new fullproof.AbstractEngine;
+/**
+ * @const
+ */
+fullproof.BooleanEngine.CONST_MODE_INTERSECT = 1;
+/**
+ * @const
+ */
+fullproof.BooleanEngine.CONST_MODE_UNION = 2;
