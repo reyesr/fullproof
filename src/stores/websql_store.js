@@ -215,6 +215,8 @@ fullproof.store = fullproof.store||{};
 						callback(index);
 					}
 					
+				}, function() { // error callback
+					callback(false);
 				});
 			}
 		});				

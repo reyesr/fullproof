@@ -41,7 +41,9 @@ fullproof.store = fullproof.store||{};
 	};
 
 	fullproof.store.MemoryStore.prototype.openStore = function(parameters, callback) {
-		callback(this);
+		if (callback) {
+			callback(this);
+		}
 	};
 	fullproof.store.MemoryStore.prototype.closeStore = function(callback) {
 		this.indexes = {};

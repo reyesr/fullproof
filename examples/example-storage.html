@@ -5,14 +5,21 @@
 <title>Javascript Search Engine : parser testing</title>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
 
-<script type="text/javascript" src="src/unicode/categ_letters_numbers.js"></script>
-<script type="text/javascript" src="src/unicode/normalizer_lowercase_nomark.js"></script>
-<script type="text/javascript" src="src/unicode/unicode.js"></script>
-<script type="text/javascript" src="src/stores/memory_store.js"></script>
-<script type="text/javascript" src="src/stores/websql_store.js"></script>
-<script type="text/javascript" src="src/analyzers.js"></script>
-<script type="text/javascript" src="src/normalizers.js"></script>
-<script type="text/javascript" src="src/resultsets.js"></script>
+<script type="text/javascript" src="../src/unicode/categ_letters_numbers.js"></script>
+<script type="text/javascript" src="../src/unicode/normalizer_lowercase_nomark.js"></script>
+<script type="text/javascript" src="../src/unicode/unicode.js"></script>
+<script type="text/javascript" src="../src/analyzers.js"></script>
+<script type="text/javascript" src="../src/normalizers.js"></script>
+<script type="text/javascript" src="../src/normalizers/english/porter-stemmer.js"></script>
+<script type="text/javascript" src="../src/misc/dataloader.js"></script>
+<script type="text/javascript" src="../src/capabilities.js"></script>
+<script type="text/javascript" src="../src/utils.js"></script>
+<script type="text/javascript" src="../src/scoring-engine.js"></script>
+<script type="text/javascript" src="../src/common-engine.js"></script>
+<script type="text/javascript" src="../src/resultsets.js"></script>
+<script type="text/javascript" src="../src/storemanager.js"></script>
+<script type="text/javascript" src="../src/stores/memory_store.js"></script>
+<script type="text/javascript" src="../src/stores/websql_store.js"></script>
 
 <style TYPE="text/css">
 
@@ -53,9 +60,9 @@ You can try to store data by typing text here: every non-blank line will be inde
 the key is the line number.
 
 <div>
-	<textarea id="typehere" class="typebox">première ligne
-deuxième ligne
-troisième ligne
+	<textarea id="typehere" class="typebox">first line
+second line
+third line
 	</textarea>
 	<div style="float:left; min-width: 10em; margin: 2em;">
 		<div><button id="action" > STORE &gt;&gt; </button></div>
@@ -69,89 +76,36 @@ troisième ligne
 
 <script type="text/javascript">
 
-
-console.log("TESTS");
-console.log(window);
-console.log(window.indexedDB);
-if (window.indexedDB) {
-	console.log("ok");
-}
-
 $(document).ready(function() {
 
 	var parser_for_all = new fullproof.StandardAnalyzer([fullproof.normalizer.to_lowercase_nomark, fullproof.normalizer.remove_duplicate_letters]);
-	
-	var under_test = [
-       	    {
-       	    	label: "memory parser",
-       	    	engine: new fullproof.store.MemoryStore(),
-       	    	parser: parser_for_all
-       	    },
-        	    {
-       	    	label: "websql parser",
-       	    	engine: (function() {
-       	    		var e = new fullproof.store.WebSQLStore();
-       	    		e.open("testsearch", "ind1", 1024*1024*20, function() {
-       	    			// do something
-       	    			console.log(arguments);
-       	    		});
-       	    		return e;
-       	    	})(),
-       	    	parser: parser_for_all
-       	    }
-/*        	    {
-       	    	label: "Standard parser + lowercase + english porter stemmer",
-       	    	func: gluedom(net.kornr.searchengine.parser.parse, [net.kornr.searchengine.normalizer.to_lowercase_nomark,net.kornr.searchengine.normalizer.english.porter_stemmer])
-       	    },
-       	    {
-       	    	label: "Standard parser + lowercase + french stemmer",
-       	    	func: gluedom(net.kornr.searchengine.parser.parse, [net.kornr.searchengine.normalizer.to_lowercase_nomark,net.kornr.searchengine.normalizer.french.simple_stemmer])
-       	    }
- */	];
+	parser_for_all.sendFalseWhenComplete = false;
 
-	for (var i=0; i<under_test.length; ++i) {
-		var obj = under_test[i];
-		obj.id = 'el-xxxxxxxxxxx'.replace(/[xy]/g, function(c) {return String.fromCharCode(65+parseInt(Math.random()*26));	});
-		$("#results").append(function() {
-			return "<div class='floatbox'>"+obj.label+"<div class='resultbox' id='"+obj.id+"'></div></div>";
-		});
-	}
-
-/* 	var parser = function(sentence, value, word_callback) {
-		console.log("parssing " + sentence);
-		fullproof.parser.parse(sentence, function(word) {
-			if (word) {
-				word = SEARCH.normalizer.to_lowercase_nomark(word);
-				word_callback(word, value);
-			}
-		});
-	}
- */	
-	$("#action").click(function() {
+	function storeContent() {
 		var value = $("#typehere").val();
 		
 		var lines = value.split("\n");
 		$("#analysis").html("Storing " + lines.length + " lines");		
 		for (var i=0; i<under_test.length; ++i) {
 			var o = under_test[i];
-			o.engine.clear(function() {
+			o.index.clear(function() {
 				var ilog = "Storing " + lines.length + " lines<p/><pre>";
 				for (var l=0; l<lines.length; ++l) {
 					if (lines[l].length) {
 						
 						o.parser.parse(lines[l], function(word) {
 							ilog += ("storing word " + word +" => " + l + "\n");
-							o.engine.inject(word, l); // the line number is the value stored
+							o.index.inject(word, l); // the line number is the value stored
 						});
 					}
 				}
 				ilog += "</pre>";
 				$("#"+o.id).html(ilog);
 			});
-		}
-	});
-	
-	$("#lookup").click(function() {
+		}		
+	}
+
+	function search() {
 		var value = $("#search").val();
 		var split = value.split(" ");
 		if (split.length) {
@@ -161,10 +115,12 @@ $(document).ready(function() {
 				var o = under_test[i];
 				var ilog = "lookup of " + value + " <p/><pre>";
 				o.parser.parse(value, function(word) {
-					var set = o.engine.lookup(word, function(data) {
+					var set = o.index.lookup(word, function(data) {
 						if (data) {
 							ilog += "found "+word+" on lines: " + data.toString();
-							console.log(data);
+							if (console && console.log) {
+								console.log(data);
+							}
 						} else {
 							ilog += "Not found: the database is empty or the word is not contained";
 						}
@@ -175,8 +131,48 @@ $(document).ready(function() {
 				});
 			}
 		}
-	});
+	}
 	
+	var under_test = [
+       	    {
+       	    	label: "memory store",
+       	    	engine: new fullproof.store.MemoryStore(),
+       	    	parameters: new fullproof.Capabilities(),
+       	    	indexName: "testidx",
+       	    	parser: parser_for_all
+       	    },
+       	    {
+      	    	label: "websql store",
+      	    	engine: new fullproof.store.WebSQLStore(),
+      	    	parameters: new fullproof.Capabilities({dbName:"testsearch", dbSize: 1024*1024*20}),
+      	    	parser: parser_for_all,
+      	    	indexName: "testidx"
+      	    }
+	];
+
+	var sync_index_opened = fullproof.make_synchro_point(function() {
+		storeContent();
+	}, under_test.length);	
+	
+	for (var i=0; i<under_test.length; ++i) {
+		var obj = under_test[i];
+		obj.id = 'el-xxxxxxxxxxx'.replace(/[xy]/g, function(c) {return String.fromCharCode(65+parseInt(Math.random()*26));	});
+		$("#results").append(function() {
+			return "<div class='floatbox'>"+obj.label+"<div class='resultbox' id='"+obj.id+"'></div></div>";
+		});
+		
+		obj.engine.openStore(obj.parameters, function(store) {
+			store.openIndex(obj.indexName, obj.parameters, undefined, function(index) {
+				 obj.index = index;
+				 sync_index_opened();
+			});
+		});
+	}
+	
+	$("#action").click(storeContent);
+	$("#search").change(search);
+	$("#lookup").click(search);
+
 });</script>
 </body>
 </html>
