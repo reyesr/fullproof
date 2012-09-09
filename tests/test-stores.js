@@ -12,32 +12,44 @@ function build_store_test(name, store, dataGenerator, useScore) {
 		expect(1);
 		QUnit.stop();
 		var result = false;
+
+		var indexReq = new fullproof.IndexRequest("test", caps);
 		
-		store.openIndex("test", caps, false, function(index) {
-			index.clear(function() {
-				index.inject("key", "value", function() {
-					index.clear(function() {
-						index.lookup("key", function(val) {
-							//deepEqual(val, []);
-							val.testEquals([]);
-							QUnit.start();
+		store.close(function() {
+			store.open(caps, [indexReq], function() {
+				var index = store.getIndex("test");
+				index.clear(function() {
+					index.inject("key", "value", function() {
+						index.clear(function() {
+							index.lookup("key", function(val) {
+								//deepEqual(val, []);
+								val.testEquals([]);
+								QUnit.start();
+							});
 						});
 					});
-				});
-			});	
+				});		
+			});
 		});
+		
 	});
 
 	test(name+"_clear_invalid_callback", function() {
 		expect(1);
 		QUnit.stop();
 		try {
-			store.openIndex("test_clear", caps, false, function(index) {
-				index.clear();
-				index.clear(undefined);
-				index.clear(false);
-				ok(true);
-				QUnit.start();
+			
+			var indexReq = new fullproof.IndexRequest("test", caps);
+			
+			store.close(function() {
+				store.open(caps, [indexReq], function() {
+					var index = store.getIndex("test");
+					index.clear();
+					index.clear(undefined);
+					index.clear(false);
+					ok(true);
+					QUnit.start();
+				});
 			});
 		} catch(e) {
 			ok(false);
@@ -54,42 +66,49 @@ function build_store_test(name, store, dataGenerator, useScore) {
 		
 		expect(1 + dataset.getSize()* (useScore?2:1));
 		QUnit.stop();
+
 		
-		store.openIndex("test_clear", caps, false, function(index) {
-			index.clear(function() {
-				
-				var synchro_inject = fullproof.make_synchro_point(function(args) {
-					var rset = new fullproof.ResultSet().merge(dataset);
+		var indexReq = new fullproof.IndexRequest("test", caps);
+		
+		store.close(function() {
+			store.open(caps, [indexReq], function() {
+				var index = store.getIndex("test");
+				index.clear(function() {
 					
-					var verifier = function(res) {
-						console.log("VERIFIER",res);
-						equal(dataset.getSize(), res.length);
-						for (var i=0; i<res.length; ++i) {
-							if (useScore) {
-								equal(res[i].getDataUnsafe()[0].value, dataset.getDataUnsafe()[i].value);
-								equal(res[i].getDataUnsafe()[0].score, dataset.getDataUnsafe()[i].score);
-							} else {
-								equal(res[i].getDataUnsafe()[0], dataset.getDataUnsafe()[i].value);
-							}
-						}
-						QUnit.start();
-					};
-					
-					var verif_synchro = fullproof.make_synchro_point(verifier, dataset.getSize());
-					
-					dataset.forEach(function(o) {
-						index.lookup(o.key?o.key:o, verif_synchro);
+					var synchro_inject = fullproof.make_synchro_point(function(args) {
+						var rset = new fullproof.ResultSet().merge(dataset);
 						
-					});
+						var verifier = function(res) {
+							console.log("VERIFIER",res);
+							equal(dataset.getSize(), res.length);
+							for (var i=0; i<res.length; ++i) {
+								if (useScore) {
+									equal(res[i].getDataUnsafe()[0].value, dataset.getDataUnsafe()[i].value);
+									equal(res[i].getDataUnsafe()[0].score, dataset.getDataUnsafe()[i].score);
+								} else {
+									equal(res[i].getDataUnsafe()[0], dataset.getDataUnsafe()[i].value);
+								}
+							}
+							QUnit.start();
+						};
+						
+						var verif_synchro = fullproof.make_synchro_point(verifier, dataset.getSize());
+						
+						dataset.forEach(function(o) {
+							index.lookup(o.key?o.key:o, verif_synchro);
+							
+						});
+						
+					}, dataset.getSize());
 					
-				}, dataset.getSize());
-				
-				dataset.forEach(function(el) {
-					index.inject(el.key, useScore?new fullproof.ScoredElement(el.value, el.score):el.value, synchro_inject);
+					dataset.forEach(function(el) {
+						index.inject(el.key, useScore?new fullproof.ScoredElement(el.value, el.score):el.value, synchro_inject);
+					});
+//					console.log(dataset.toString());
 				});
-//				console.log(dataset.toString());
+
 			});
-		});		
+		});
 	});
 	
 	if (useScore) {
@@ -98,17 +117,23 @@ function build_store_test(name, store, dataGenerator, useScore) {
 			expect(4);
 			QUnit.stop();
 			var result = false;
-			store.openIndex("test_clear", caps, false, function(index) {
-				index.clear(function() {
-					index.inject("key", new fullproof.ScoredElement("value", 0), function() {
-						index.lookup("key", function(val) {
-							//deepEqual(val, []);
-							var arr = val.getDataUnsafe();
-							equal(val.getSize(),1);
-							equal(arr.length,1);
-							equal(arr[0].value, "value");
-							equal(arr[0].score, 0);
-							QUnit.start();
+			
+			var indexReq = new fullproof.IndexRequest("test", caps);
+			
+			store.close(function() {
+				store.open(caps, [indexReq], function() {
+					var index = store.getIndex("test");
+					index.clear(function() {
+						index.inject("key", new fullproof.ScoredElement("value", 0), function() {
+							index.lookup("key", function(val) {
+								//deepEqual(val, []);
+								var arr = val.getDataUnsafe();
+								equal(val.getSize(),1);
+								equal(arr.length,1);
+								equal(arr[0].value, "value");
+								equal(arr[0].score, 0);
+								QUnit.start();
+							});
 						});
 					});
 				});
@@ -145,10 +170,8 @@ build_store_test("memory_score_objects", new fullproof.store.MemoryStore, mkData
 build_store_test("memory_noscore_objects", new fullproof.store.MemoryStore, mkDataGenerator(false), true);
 
 var params = new fullproof.Capabilities().setDbName("fullprooftest").setDbSize(1024*1024*1);
-var sqldb = (new fullproof.store.WebSQLStore());
-sqldb.openStore(params, function(store) {
-	build_store_test("websql_noscore_integers", store, mkDataGenerator(true), false);
-	build_store_test("websql_score_integers", store, mkDataGenerator(true), true);
-	build_store_test("websql_noscore_objects", store, mkDataGenerator(true), false);
-	build_store_test("websql_score_objects", store, mkDataGenerator(true), true);
-});
+var sqlstore = new fullproof.store.WebSQLStore();
+build_store_test("websql_noscore_integers", sqlstore, mkDataGenerator(true), false);
+build_store_test("websql_score_integers", sqlstore, mkDataGenerator(true), true);
+build_store_test("websql_noscore_objects", sqlstore, mkDataGenerator(true), false);
+build_store_test("websql_score_objects", sqlstore, mkDataGenerator(true), true);

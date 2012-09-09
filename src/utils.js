@@ -135,3 +135,18 @@ fullproof.filterObjectProperties = function(array_of_object, property) {
 	return result;
 }
 
+
+/**
+ * Represents a request for the creation of an index. Provided are the name of the index,
+ * suitable for use by any store, the capabilities required for this index, and the
+ * initializer for its data.
+ */
+fullproof.IndexRequest = function(name, capabilities, initializer) {
+	if (!(this instanceof fullproof.IndexRequest)) {
+		return new fullproof.IndexRequest(name, capabilities, initializer);
+	}
+	this.name = name;
+	this.capabilities = capabilities;
+	this.initializer = initializer;
+};
+

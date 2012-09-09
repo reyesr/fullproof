@@ -61,10 +61,10 @@ test("scoring analyzer", function() {
 	var sync = fullproof.make_synchro_point(function(words) {
 		equal(words.length, 15);
 		
-		equal(words[0].value, "this");
-		equal(words[1].value, "is");
-		equal(words[2].value, "a");
-		equal(words[3].value, "test");
+		equal(words[0].key, "this");
+		equal(words[1].key, "is");
+		equal(words[2].key, "a");
+		equal(words[3].key, "test");
 		
 		// Need test on scoring here
 		ok(words[0].score > words[1].score);

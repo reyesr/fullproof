@@ -5,36 +5,38 @@ function makeFakeStore(caps) {
 		return new makeFakeStore(caps);
 	}
 	caps.setAvailable(true);
-	return function() {
-		this.capabilities = caps;
-		this.openIndex = function(name, parameters, initializer, callback) {
+	var result = function() {
+		this.open = function(caps, reqIndexArray, callback) {
 			callback(this);
-		}
-		this.openStore = function(parameters, callback) {
-			callback(this);
-		}
+		};
+		this.close = function(callback) {
+			callback();
+		};
+	};
+	result.getCapabilities = function() {
+		return caps;
 	}
+	return result;
 }
 
 function create_findstore_test(name, sequence, capabilities, expectedOffset) {
 
 	test("find_a_store_" + name, function() {
 		var manager = new fullproof.StoreManager(sequence);
-		expect(2);
+		expect(3);
 		QUnit.stop();
-		var index = manager.openIndex("test1", capabilities, 
-				function(index, cb) { // initializer
-					console.log("initializer")
-					cb();
-				}, function(index, candidate) { // final callback
-					ok(index !== false);
-					if (candidate) {
-						equal(candidate.name, sequence[expectedOffset].name);
-					} else {
-						ok(false);
-					}
-					QUnit.start();
-				});
+		manager.addIndex(new fullproof.IndexRequest(name, capabilities, function(index,cb) {console.log("initializer"); cb(); }));
+		manager.openIndexes(function(indexes) {
+			console.log("indexes", indexes);
+			ok(indexes !== false);
+			ok(indexes.length == 1);
+			if (indexes && indexes.length>0) {
+				equal(indexes[0].storeName, sequence[expectedOffset].name);
+			} else {
+				ok(false);
+			}
+			QUnit.start();
+		});
 	});
 	
 }

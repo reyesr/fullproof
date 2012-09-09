@@ -1,10 +1,17 @@
 A store is an interface to a data storage provided by the browser. It manages the creation and deletion of the inverted indexes that
 are used by the fulltext engine to look documents up.
 
+Stores manage tuplets <term, value> or <term, value, score>, where term is a linguistic token (for instance an english word), 
+and value is an application-specific primary value (typically an integer or a string that represent a way to retrieve a
+document from your application). The score is an optional data, used by the ScoringEngine (so don't bother with it if you're using
+the BooleanEngine) to modify the final result sets (typically, an higher score means the word is more relevant, while a lower score means
+it's less relevant to the document).
+
 A store must implement the following functions:
 
-openStore(callback)
+openStore(parameters, callback)
 Opens a store and configure it. The callback is called with a reference to the store.
+parameters are any object, possibly a Capabilities instance, used to configure the store (ie database name, etc)
 
 closeStore(callback)
 Closes a store and all its indexes. The callback is called when everything is closed.
@@ -16,27 +23,27 @@ If the index does not exists in the store, the initializer is called, and the me
 as complete. The initializer is called with the index as first argument, and a callback as second argument. The
 initializer MUST call the provided callback on completion, or the openIndex will never complete.
 The callback argument is called with a reference on the index.
-The parameter is an object that must contains the following properties
-{
- useScore: true/false,
- comparatorObject: {lower_than: function(){}, equals: function() {} }
-}
-If useScore is true, then the index expects the injected data to be fullproof.ScoredElement.
-The comparator object must provide functions to sort and search through the stored values.
-If the index cannot be open, the callback is called with a single parameter false.
-
+The parameter is a Capabilities instance.
+If the index cannot be open, the callback is called with a single false parameter.
 
 closeIndex(name, callback)
 Closes an index. This makes it available for garbage collecting (unless the application code holds a reference on it).
 The callback is called when the index is closed.
 
 An index must implement the following functions
-
+f
 clear(callback)
 Delete all the data stored by this index (ie. after this call, it's empty).
 The callback is called with a reference to this index when the action is complete.
 
 inject(word, value, callback)
+if value is a fullproof.ScoredEntry, it is used to store a value and its score
+otherwise, the store injects in its database the value for the specified word (as key).
+The callback is called when the operation is complete, with parameter true for success, or false if the
+injection failed. 
+
+injectBulk(wordArray, valueArray, callback)
+like inject, but massively inject an array of entries. 
 
 lookup(word, callback)
 calls the callback with an instance of a fullproof.ResultSet that holds the data associated to the word.

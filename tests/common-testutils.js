@@ -17,6 +17,18 @@ fullproof = (function(NAMESPACE) {
 
 	NAMESPACE.tests = NAMESPACE.tests || {};
 
+	NAMESPACE.tests.error = function() {
+		ok(false);
+	}
+	NAMESPACE.tests.error_restart = function() {
+		ok(false);
+		QUnit.start();
+	}
+	NAMESPACE.tests.success_restart = function() {
+		ok(true);
+		QUnit.start();
+	}
+	
 	NAMESPACE.tests.mkRandomString = function(size) {
 		result = "";
 		for (var i=0;i<size; ++i) {

@@ -33,9 +33,10 @@ fullproof.StoreDescriptor = function(name, ref) {
  * @constructor
  * @param {Array.fullproof.StoreDescriptor} storeDescriptors an array of {fullproof.StoreDescriptor} instances.
  */
-fullproof.StoreManager = function(storeDescriptors) {
-
+fullproof.StoreManager = function(dbName, storeDescriptors) {
+	
 	this.available = [];
+	this.dbName = dbName;
 	
 	if (fullproof.store) {
 		storeDescriptors = storeDescriptors || [ new fullproof.StoreDescriptor("websqlstore", fullproof.store.WebSQLStore),
@@ -48,79 +49,100 @@ fullproof.StoreManager = function(storeDescriptors) {
 	}
 
 	this.indexes = {};
+	this.indexesByStore = {};
+	this.storeCount = 0;
 	this.storeCache= {};
-	
+	this.selectedStorePool = [];
 	var self = this;
-	
-	function findSuitableStore(name, parameters, callback, queue) {
-		if (queue.constructor != Array || queue.length == 0) {
-			return callback(false);
-		}
-		var candidate = queue.shift();
 
-		// Caching the store
-		var store = self.storeCache[candidate.name];
-		if (!store) {
-			store = new candidate.ref();
-			self.storeCache[candidate.name] = store;
+	function selectSuitableStore(requiredCaps, pool) {
+		if (pool.constructor != Array || pool.length==0) {
+			return false;
 		}
-		
-		var caps = store.capabilities;
-		if (caps.isCompatibleWith(parameters)) {
-			return store.openStore(parameters, function(store) {
-				if (store) {
-					callback(store, candidate);
-				} else {
-					findSuitableStore(name, parameters, callback, queue);
-				}
-			});
-		}
-		
-		findSuitableStore(name, parameters, callback, queue);
-	}
-	
-	/**
-	 * Finds a suitable store and opens an index ready for read/write use.
-	 * @param {string} name the name of the index. This must be unique for the application.
-	 * @param {fullproof.Capabilities} parameters an instance of {fullproof.Capabilities} describing the requirements for the index
-	 * @param {function(fullproof.TextInjector)} initializer a function to call when the index is either newly created or empty
-	 * @param {function(Object)} callback a function called when the index is created. The index is provided as argument of the function, or false if the index could not be created. 
-	 */
-	this.openIndex = function(name, parameters, initializer, callback) {
-		var self = this;
-		
-		if (!(parameters instanceof fullproof.Capabilities)) {
-			throw "Parameter for " + name + " is not a fullproof.Capabilities object";
-		}
-
-		if (parameters.getStoreObjects() === true && parameters.getComparatorObject()===undefined) {
-			throw "Index " + name + " stores objects, but does not define comparatorObject";
-		}
-		
-		var storeDescriptors = [].concat(this.available);
-		findSuitableStore(name, parameters, function(store, obj) {
-			if (store) {
-				store.openIndex(name, parameters, initializer, function(index) {
-					self.indexes[name] = {name: name, store: store, index: index, descriptor: obj}
-					callback(index, obj);
-				});
-			} else {
-				callback(false);
+		for (var i=0; i<pool.length; ++i) {
+			if (pool[i].ref.getCapabilities().isCompatibleWith(requiredCaps)) {
+				return pool[i];
 			}
-		}, storeDescriptors);
+		}
+		return false;
+	}
+
+	/**
+	 * Adds an index to the list of index managed by the StoreManager.
+	 * @param indexRequest an instance of fullproof.IndexRequest that describes the index to add
+	 * @return true if an appropriate store was found, false otherwise
+	 */
+	this.addIndex = function(indexRequest) {
+		var candidateStore = selectSuitableStore(indexRequest.capabilities, [].concat(this.available));
+		this.indexes[indexRequest.name] = {req: indexRequest, storeRef: candidateStore };
+		if (candidateStore) {
+			if (this.indexesByStore[candidateStore.name] === undefined) {
+				this.indexesByStore[candidateStore.name] = [];
+				this.indexesByStore[candidateStore.name].ref = candidateStore.ref;
+				++(this.storeCount);
+			}
+			
+			this.indexesByStore[candidateStore.name].push(indexRequest.name);
+		}
+		return !!candidateStore;
 	};
 
+	/**
+	 * Open all the indexes added to the StoreManager.
+	 * Once all the indexes were opened, the callback function is called.
+	 * @param callback the function to call when everything is opened (called with false if some index fails to open)
+	 */
+	this.openIndexes = function(callback, errorCallback) {
+		if (this.storeCount === 0) {
+			return callback();
+		}
+		var synchro = fullproof.make_synchro_point(callback, this.storeCount);
+		
+		for (var k in this.indexesByStore) {
+			var store = new this.indexesByStore[k].ref();
+			var arr = this.indexesByStore[k];
+			var reqIndexes = [];
+			var storeCapabilities = new fullproof.Capabilities().setDbName(this.dbName);
+			var size = 0;
+			for (var i=0; i<arr.length; ++i) {
+				var index = this.indexes[arr[i]];
+				reqIndexes.push(index.req);
+				size += Math.max(index.req.capabilities.getDbSize(),0);
+			}
+			storeCapabilities.setDbSize(size);
+			var self = this;
+			store.open(storeCapabilities, reqIndexes, function(indexArray) {
+				if (indexArray && indexArray.length>0) {
+					for (var i=0; i<indexArray.length; ++i) {
+						var index = indexArray[i];
+						console.log("opened ", index);
+						index.parentStore = store;
+						index.storeName = k;
+						self.indexes[index.name].index = index;
+					}
+					synchro(store);
+				} else {
+					errorCallback();
+				}
+			}, errorCallback);
+		}
+	};
+	
 	/**
 	 * Returns information relative to the index
 	 * @param indexName the index name
 	 */
 	this.getInfoFor = function(indexName) {
 		return this.indexes[indexName];
-	}
+	};
 
+	this.getIndex = function(name) {
+		return this.indexes[name].index;
+	};
+	
 	this.forEach = function(callback) {
-		for (var k in indexes) {
-			callback(indexes[k]);
+		for (var k in this.indexes) {
+			callback(k, this.indexes[k].index);
 		}
 	}
 	

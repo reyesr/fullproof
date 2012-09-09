@@ -146,16 +146,24 @@ fullproof.store = fullproof.store||{};
 		if (!(this instanceof fullproof.store.WebSQLStore)) {
 			return new fullproof.store.WebSQLStore();
 		}
-		
-		this.capabilities = new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(window.openDatabase).setUseScores([true,false]);
-		
-		this.db = null;
-		this.meta = null;
-		this.tables = {};
-		this.opened= false;
-		this.dbName = "fullproof";
-		this.dbSize = 1024*1024*5;
+				
+		this.internal_init = function() {
+			this.db = null;
+			this.meta = null;
+			this.tables = {};
+			this.indexes = {};
+			this.opened= false;
+			this.dbName = "fullproof";
+			this.dbSize = 1024*1024*5;
+		}
+		this.internal_init();
 	};
+	
+	fullproof.store.WebSQLStore.getCapabilities = function() { 
+		return new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(window.openDatabase).setUseScores([true,false]);
+	}
+	fullproof.store.WebSQLStore.name = "WebsqlStore";
+
 	
 	fullproof.store.WebSQLStore.prototype.setOptions = function(params) {
 		this.dbSize = params.dbSize||this.dbSize;
@@ -163,49 +171,28 @@ fullproof.store = fullproof.store||{};
 		return this;
 	};
 
-	fullproof.store.WebSQLStore.prototype.openStore = function(parameters, callback) {
-		this.opened = false;
-		this.tableName = name;
-		if (parameters.getDbName() !== undefined) {
-			this.dbName = parameters.getDbName();
-		}
-		if (parameters.getDbSize() !== undefined) {
-			this.dbSize = parameters.getDbSize();
-		}
-		this.db = openDatabase(this.dbName, '1.0', 'javascript search engine', this.dbSize*10);
-		this.opened = true;
-		var sef = this;
-		this.meta = new MetaData(this, function(store) {
-				callback(store);
-			}, fullproof.make_callback_caller(callback,false));
-	};
-
-	fullproof.store.WebSQLStore.prototype.closeStore = function(callback) {
-		this.opened = false;
-		callback(this);
-	};
-	
-	fullproof.store.WebSQLStore.prototype.openIndex = function(name, parameters, initializer, callback) {
-		if (this.opened == false || !this.meta) {
+	function openIndex(store, name, parameters, initializer, callback, errorCallback) {
+		if (store.opened == false || !store.meta) {
 			return callback(false);
 		}
 		
 		parameters = parameters||{};
 		var index = new WebSQLStoreIndex();
-		index.store = this;
+		index.store = store;
 		var useScore = parameters.getUseScores()!==undefined?(parameters.getUseScores()):false;
 		
-		index.db = this.db;
-		index.tableName = name;
+		index.db = store.db;
+		index.tableName = index.name = name;
 		index.comparatorObject = parameters.getComparatorObject()?parameters.getComparatorObject():(useScore?fullproof.ScoredElement.comparatorObject:undefined);
 		index.useScore = useScore;
 		
-		var self = this;
-		this.meta.isInitialized(name, function(isInit) {
+		var self = store;
+		store.meta.isInitialized(name, function(isInit) {
 			if (isInit) {
 				return callback(index);
 			} else {
 				self.meta.createIndex(name, function() {
+					self.indexes[name] = index;
 					if (initializer) {
 						initializer(index, function() {
 							index.opened = true;
@@ -214,19 +201,51 @@ fullproof.store = fullproof.store||{};
 					} else {
 						callback(index);
 					}
-					
-				}, function() { // error callback
-					callback(false);
-				});
+				}, errorCallback);
 			}
 		});				
 	}; 
+
+	function openStore(store, parameters, callback) {
+		store.opened = false;
+		if (parameters.getDbName() !== undefined) {
+			store.dbName = parameters.getDbName();
+		}
+		if (parameters.getDbSize() !== undefined) {
+			store.dbSize = parameters.getDbSize();
+		}
+		store.db = openDatabase(store.dbName, '1.0', 'javascript search engine', store.dbSize*10);
+		store.opened = true;
+		store.meta = new MetaData(store, function(store) {
+				callback(store);
+			}, fullproof.make_callback_caller(callback,false));
+	};
+
 	
-	fullproof.store.WebSQLStore.prototype.closeIndex = function(name, callback) {
-		delete this.tables[name];
-		callback(this);
+	fullproof.store.WebSQLStore.prototype.open = function(caps, reqIndexArray, callback, errorCallback) {
+		var self = this;
+		openStore(this, caps, function(store) {
+			var synchro = fullproof.make_synchro_point(callback, reqIndexArray.length);
+			for (var i=0, max=reqIndexArray.length; i<max; ++i) {
+				var requestIndex = reqIndexArray[i];
+				openIndex(self, requestIndex.name, requestIndex.capabilities, requestIndex.initializer, synchro);
+			}
+		});
 	};
 	
+	fullproof.store.WebSQLStore.prototype.close = function(callback) {
+		this.internal_init();
+		callback();
+	};
+
+	fullproof.store.WebSQLStore.prototype.getIndex = function(name) {
+		return this.indexes[name];
+	};
+
+//	fullproof.store.WebSQLStore.prototype.closeIndex = function(name, callback) {
+//		delete this.tables[name];
+//		callback(this);
+//	};
 	
 	WebSQLStoreIndex.prototype.clear = function(callback) {
 		var self = this;
@@ -271,7 +290,6 @@ fullproof.store = fullproof.store||{};
 				processBulk(wArray, vArray);
 			}, curWords.length);
 			self.db.transaction(function(tx) {
-				console.log("Inserting " + curWords.length + " lines");
 				for (var i=0; i<curWords.length; ++i) {
 					var value = vArray[i];
 					if (value instanceof fullproof.ScoredEntry) {

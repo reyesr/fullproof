@@ -34,18 +34,16 @@ fullproof.BooleanEngine = function() {
 	 */
 	this.booleanMode = fullproof.BooleanEngine.CONST_MODE_INTERSECT;
 	
-	this.lookup = function(text, callback, /* private */storeIndex) {
-		if (storeIndex === undefined) {
-			storeIndex = 0;
+	function lookup(text, callback, arrayOfIndexUnits, mode) {
+		if (arrayOfIndexUnits.length == 0) {
+			return callback(false);
 		}
-		var self = this;
-		var store = this.stores[storeIndex];
-
-		store.parser.parse(text, fullproof.make_synchro_point(function(array_of_words) {
+		var unit = arrayOfIndexUnits.shift();
+		unit.analyzer.parse(text, fullproof.make_synchro_point(function(array_of_words) {
 			
 			if (!array_of_words || array_of_words.length == 0) {
-				if (self.stores.length > storeIndex+1) {
-					return self.lookup(text, callback, storeIndex+1);
+				if (arrayOfIndexUnits.length>0) {
+					return lookup(text, callback, arrayOfIndexUnits, mode);
 				} else {
 					return callback(false);
 				}
@@ -56,7 +54,7 @@ fullproof.BooleanEngine = function() {
 				var curset = rset_array.shift();
 				while (rset_array.length > 0) {
 					var set = rset_array.shift();
-					switch(self.booleanMode) {
+					switch(mode) {
 					case fullproof.BooleanEngine.CONST_MODE_UNION:
 						curset.merge(set);
 						break;
@@ -67,8 +65,8 @@ fullproof.BooleanEngine = function() {
 				}
 				
 				if (curset.getSize() ==0) {
-					if (self.stores.length > storeIndex+1) {
-						self.lookup(text, callback, storeIndex+1);
+					if (arrayOfIndexUnits.length>0) {
+						return lookup(text, callback, arrayOfIndexUnits, mode);
 					} else {
 						callback(false);
 					}
@@ -79,12 +77,17 @@ fullproof.BooleanEngine = function() {
 			}, array_of_words.length);
 
 			for (var i=0; i<array_of_words.length; ++i) {
-				store.index.lookup(array_of_words[i], lookup_synchro);
+				unit.index.lookup(array_of_words[i], lookup_synchro);
 			}
 		}));
-		
+	}
+	
+	this.lookup = function(text,callback) {
+		lookup(text,callback, this.getIndexUnits(), this.booleanMode);
+		return this;
 	}
 }
+
 fullproof.AbstractEngine = fullproof.AbstractEngine || (function() {});
 fullproof.BooleanEngine.prototype = new fullproof.AbstractEngine;
 /**

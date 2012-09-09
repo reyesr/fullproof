@@ -49,6 +49,8 @@ fullproof.ScoringEngine.prototype.checkCapabilities = function(capabilities, ana
 
 fullproof.ScoringEngine.prototype.lookup = function(text, callback) {
 	
+	var units = this.getIndexUnits();
+	
 	function merge_resultsets(rset_array, storeDesc) {
 		if (rset_array.length == 0) {
 			return new fullproof.ResultSet(storeDesc.caps.getComparatorObject());
@@ -64,26 +66,25 @@ fullproof.ScoringEngine.prototype.lookup = function(text, callback) {
 	var synchro_all_indexes = fullproof.make_synchro_point(function(array_of_resultset) {
 		var merged = merge_resultsets(array_of_resultset);
 		callback(merged);
-	}, this.stores.length);
+	}, units.length);
 	
-	for (var i=0; i<this.stores.length; ++i) {
-		var store = this.stores[i];
-		store.parser.parse(text, fullproof.make_synchro_point(function(array_of_words) {
+	for (var i=0; i<units.length; ++i) {
+		var unit = units[i];
+		unit.analyzer.parse(text, fullproof.make_synchro_point(function(array_of_words) {
 			if (array_of_words) {
 					if (array_of_words.length == 0) {
 						callback(new fullproof.ResultSet(store.caps.getComparatorObject()));
 					} else {
 						var lookup_synchro = fullproof.make_synchro_point(function(rset_array) {
-							var merged = merge_resultsets(rset_array, store.caps.getComparatorObject());
+							var merged = merge_resultsets(rset_array, unit.capabilities.getComparatorObject());
 							synchro_all_indexes(merged);
 						}, array_of_words.length);
 		
 						for (var i=0; i<array_of_words.length; ++i) {
-							store.index.lookup(array_of_words[i].key, lookup_synchro);
+							unit.index.lookup(array_of_words[i].key, lookup_synchro);
 						}
 					}
 				}
 		}));
-
 	}
 };

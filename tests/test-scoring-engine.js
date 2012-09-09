@@ -14,17 +14,7 @@ function initializerFunc(injector, callback) {
 	}
 } 
 
-test("create scoring engine", function() {
-	var engine = new fullproof.ScoringEngine();
-	expect(1);
-	QUnit.stop();
-	engine.clear(function() {
-		ok(!!engine);
-		QUnit.start();
-	});
-});
-
-test("create scoring engine", function() {
+test("create scoring engine clear empty", function() {
 	var engine = new fullproof.ScoringEngine();
 	expect(1);
 	QUnit.stop();
@@ -41,8 +31,8 @@ test("clear index", function() {
 	engine.addIndex("myindex", 
 			new fullproof.ScoringAnalyzer, 
 			new fullproof.Capabilities().setStoreObjects(false).setUseScores(true).setComparatorObject(fullproof.ScoredElement.comparatorObject), 
-			initializerFunc, 
-			function(index) {
+			initializerFunc);
+	engine.open(function(index) {
 		engine.clear(function() {
 			engine.lookup("third", function(resultset) {
 				equal(resultset, false);
@@ -58,8 +48,8 @@ test("create one index", function() {
 	engine.addIndex("myindex", 
 			new fullproof.ScoringAnalyzer, 
 			new fullproof.Capabilities().setStoreObjects(false).setUseScores(true).setComparatorObject(fullproof.ScoredElement.comparatorObject), 
-			initializerFunc, 
-			function(index) {
+			initializerFunc);
+	engine.open(function(index) {
 		ok(!!index);
 		
 		engine.lookup("third", function(resultset) {

@@ -30,33 +30,30 @@ fullproof.store = fullproof.store||{};
 		
 		if (!(this instanceof fullproof.store.MemoryStore)) {
 			return new fullproof.store.MemoryStore(comparatorObject);
-		}
-
-		this.capabilities = new fullproof.Capabilities().setStoreObjects([true,false]).setVolatile(true).setAvailable(true).setUseScores([true,false]);
+		}		
 		
-		this.indexes = {
-		};
-		
+		this.indexes = {};
 		return this;
 	};
 
-	fullproof.store.MemoryStore.prototype.openStore = function(parameters, callback) {
+	fullproof.store.MemoryStore.getCapabilities = function() {
+		return new fullproof.Capabilities().setStoreObjects([true,false]).setVolatile(true).setAvailable(true).setUseScores([true,false]);
+	}
+	fullproof.store.MemoryStore.name = "MemoryStore";
+
+	function openStore(parameters, callback) {
+		// ignore parameters
 		if (callback) {
 			callback(this);
 		}
 	};
-	fullproof.store.MemoryStore.prototype.closeStore = function(callback) {
-		this.indexes = {};
-		callback(this);
-	};
 	
-	fullproof.store.MemoryStore.prototype.openIndex = function(name, parameters, initializer, callback) {
+	function openIndex(store, name, parameters, initializer, callback) {
 		var index = new MemoryStoreIndex();
 		var useScore = parameters.getUseScores()!==undefined?(parameters.getUseScores()):false;
 		index.comparatorObject = parameters.getComparatorObject()?parameters.getComparatorObject():(useScore?fullproof.ScoredElement.comparatorObject:undefined);
 		index.useScore = useScore;
-		
-		this.indexes[name] = index;
+		store.indexes[name] = index;
 		if (initializer) {
 			initializer(index, function() {
 				callback(index);
@@ -64,12 +61,36 @@ fullproof.store = fullproof.store||{};
 		} else {
 			callback(index);
 		}
+		return index;
+	};
+
+	fullproof.store.MemoryStore.prototype.open = function(caps, reqIndexArray, callback, errorCallback) {
+		var self = this;
+		openStore(caps, function(store) {
+			var synchro = fullproof.make_synchro_point(function(result) {
+				callback(store);
+			}, reqIndexArray.length);
+			for (var i=0, max=reqIndexArray.length; i<max; ++i) {
+				var requestIndex = reqIndexArray[i];
+				openIndex(self, requestIndex.name, requestIndex.capabilities, requestIndex.initializer, synchro);
+			}
+		});
 	};
 	
-	fullproof.store.MemoryStore.prototype.closeIndex = function(name, callback) {
-		delete this.indexes[name];
+	fullproof.store.MemoryStore.prototype.getIndex = function(name) {
+		return this.indexes[name];
+	};
+
+	
+	fullproof.store.MemoryStore.prototype.close = function(callback) {
+		this.indexes = {};
 		callback(this);
 	};
+		
+//	fullproof.store.MemoryStore.prototype.closeIndex = function(name, callback) {
+//		delete this.indexes[name];
+//		callback(this);
+//	};
 	
 	MemoryStoreIndex.prototype.clear = function(callback) {
 		this.data = {};
