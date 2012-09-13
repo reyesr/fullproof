@@ -39,7 +39,8 @@ fullproof.StoreManager = function(dbName, storeDescriptors) {
 	this.dbName = dbName;
 	
 	if (fullproof.store) {
-		storeDescriptors = storeDescriptors || [ new fullproof.StoreDescriptor("websqlstore", fullproof.store.WebSQLStore),
+		storeDescriptors = storeDescriptors || [ new fullproof.StoreDescriptor("indexeddbstore", fullproof.store.IndexedDBStore),
+		                                         new fullproof.StoreDescriptor("websqlstore", fullproof.store.WebSQLStore),
 		                             new fullproof.StoreDescriptor("memorystore", fullproof.store.MemoryStore) ];
 		for (var i=0;i<storeDescriptors.length; ++i) {
 			if (storeDescriptors[i].ref) { // only push the store if it exists (.ref != undefined)

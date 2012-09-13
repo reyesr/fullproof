@@ -55,8 +55,7 @@ var Animals = (function(){
 			});
 			
 		}, function(txt, file) { data = txt.split("\n"); }, 
-		 function() { console.log("ERROR");});
-		
+		 function() { console.log("ERROR");});		
 	}
 
 	this.lookup = function(txt, callback) {

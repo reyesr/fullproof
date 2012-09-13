@@ -19,6 +19,10 @@ fullproof.store = fullproof.store||{};
 (function() {
 	"use strict";
 
+	fullproof.store.indexedDB =  window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
+	fullproof.store.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.mozIDBTransaction || window.msIDBTransaction;
+	fullproof.store.READWRITEMODE  = fullproof.store.IDBTransaction.readwrite || fullproof.store.IDBTransaction.READ_WRITE || "readwrite";
+
 	//
 	// A few methods for dealing with indexedDB stores
 	//
@@ -49,8 +53,11 @@ fullproof.store = fullproof.store||{};
 			}
 			setObject(store, defaultValue, callback, error);
 		}
-		
-		var req = store.get(keyValue);
+		try {
+			var req = store.get(keyValue);
+		} catch (e) {
+			console.log(e);
+		}
 		req.onsuccess = function(ev) {
 			if (ev.target.result === undefined) {
 				if (defaultValue !== undefined) {
@@ -73,10 +80,10 @@ fullproof.store = fullproof.store||{};
 	 * @constructor
 	 */
 	
-	function IndexedDBIndex(parent, database, storeName, comparatorObject, useScore) {
+	function IndexedDBIndex(parent, database, indexName, comparatorObject, useScore) {
 		this.parent = parent;
 		this.database = database;
-		this.storeName = storeName;
+		this.name = indexName;
 		this.comparatorObject = comparatorObject;
 		this.useScore = useScore;
 		this.internalComparator = useScore?function(a,b) {
@@ -87,16 +94,16 @@ fullproof.store = fullproof.store||{};
 	}
 	
 	IndexedDBIndex.prototype.clear = function(callback) {
-		var tx = this.database.transaction([this.storeName], this.parent.READWRITEMODE);
-		var store = tx.objectStore(this.storeName);
+		var tx = this.database.transaction([this.name], fullproof.store.READWRITEMODE);
+		var store = tx.objectStore(this.name);
 		var req = store.clear();
 		var cb = callback || function(){};
 		install_on_request(req, fullproof.make_callback_caller(cb, true), fullproof.make_callback_caller(cb, false));
 	}
 	
 	IndexedDBIndex.prototype.inject = function(word, value, callback) {
-		var tx = this.database.transaction([this.storeName], this.parent.READWRITEMODE);
-		var store = tx.objectStore(this.storeName);
+		var tx = this.database.transaction([this.name], fullproof.store.READWRITEMODE);
+		var store = tx.objectStore(this.name);
 		var self = this;
 		getOrCreateObject(store, word, function() { return {key:word,v:[]} }, function(obj) {
 			var rs = new fullproof.ResultSet(self.comparatorObject).setDataUnsafe(obj.v);
@@ -173,8 +180,8 @@ fullproof.store = fullproof.store||{};
 			if (progress) {
 				progress(offset / words.length);
 			}
-			var tx = self.database.transaction([self.storeName], self.parent.READWRITEMODE);
-			var store = tx.objectStore(self.storeName);
+			var tx = self.database.transaction([self.name], fullproof.store.READWRITEMODE);
+			var store = tx.objectStore(self.name);
 			storeMapOfWords(self, store, words, data, function(res) {
 				if (offset < words.length) {
 					fullproof.call_new_thread(storeData, self, words, data, callback, progress, offset + batchSize)
@@ -200,8 +207,8 @@ fullproof.store = fullproof.store||{};
 		var self = this;
 		var batchSize = 300;
 		
-		var tx = self.database.transaction([self.storeName], self.parent.READWRITEMODE);
-		var store = tx.objectStore(self.storeName);
+		var tx = self.database.transaction([self.name], fullproof.store.READWRITEMODE);
+		var store = tx.objectStore(self.name);
 		var words = [];
 		var data = createMapOfWordsToResultSet(this, wordArray, valuesArray, 0, wordArray.length, words);
 		storeMapOfWords(this, store, words, data, function(res) {
@@ -210,8 +217,8 @@ fullproof.store = fullproof.store||{};
 	}
 	
 	IndexedDBIndex.prototype.lookup = function(word, callback) {
-		var tx = this.database.transaction([this.storeName]);
-		var store = tx.objectStore(this.storeName);
+		var tx = this.database.transaction([this.name]);
+		var store = tx.objectStore(this.name);
 		var self = this;
 		getOrCreateObject(store, word, undefined, function(obj) {
 			if (obj && obj.v) {
@@ -236,12 +243,7 @@ fullproof.store = fullproof.store||{};
 	 * @constructor
 	 */
 	fullproof.store.IndexedDBStore = function(version) {
-		this.indexedDB =  window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
-		this.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.mozIDBTransaction || window.msIDBTransaction;
-		this.READWRITEMODE  = this.IDBTransaction.readwrite || this.IDBTransaction.READ_WRITE || "readwrite";
-		
-		this.capabilities = new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(this.indexedDB != null).setUseScores([true,false]);
-		
+
 		this.database = null;
 		this.meta = null;
 		this.metaStoreName = "fullproof_metatable";
@@ -251,8 +253,11 @@ fullproof.store = fullproof.store||{};
 		this.dbSize = 1024*1024*5;
 		this.dbVersion = version||"1.0";
 	}
-	fullproof.store.MemoryStore.storeName = "MemoryStore";
-
+	fullproof.store.IndexedDBStore.storeName = "MemoryStore";
+	fullproof.store.IndexedDBStore.getCapabilities = function() { 
+		return new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(fullproof.store.indexedDB != null).setUseScores([true,false]);
+	}
+	
 	fullproof.store.IndexedDBStore.prototype.setOptions = function(params) {
 		this.dbSize = params.dbSize||this.dbSize;
 		this.dbName = params.dbName||this.dbName;
@@ -289,6 +294,8 @@ fullproof.store = fullproof.store||{};
 		var self = this;
 		var useScore = caps.getUseScores()!==undefined?(caps.getUseScores()):false;
 		
+		var indexArrayResult = [];
+		
 		function setupIndexes(self) {
 			for (var i=0; i<self.indexRequests.length; ++i) {
 				var ireq =self.indexRequests[i];
@@ -296,23 +303,32 @@ fullproof.store = fullproof.store||{};
 				var index = new IndexedDBIndex(self, self.database, ireq.name, compObj);
 				index.useScore = useScore;
 				self.stores[ireq.name] = index;
+				indexArrayResult.push(index);
 			}					
 		}
 		
-		function callInitializerIfNeeded(metastore, self, indexRequestArray, callback, errorCallback) {
+		function callInitializerIfNeeded(database, self, indexRequestArray, callback, errorCallback) {
 			if (indexRequestArray.length == 0) {
 				return callback(true);
 			}
 			
+			var tx = database.transaction([self.metaStoreName], fullproof.store.READWRITEMODE);
+			var metastore = tx.objectStore(self.metaStoreName);
 			var ireq = indexRequestArray.shift();
 			getOrCreateObject(metastore, ireq.name, {id: ireq.name, init: false}, 
 					function(obj) {
 						if (obj.init == false && ireq.initializer) {
 							ireq.initializer(self.getIndex(ireq.name), function() {
-								callInitializerIfNeeded(metastore, self, indexRequestArray, callback, errorCallback);
+								fullproof.call_new_thread(callInitializerIfNeeded, database, self, indexRequestArray, callback, errorCallback);
+								fullproof.call_new_thread(function() {
+									var tx = database.transaction([self.metaStoreName], fullproof.store.READWRITEMODE);
+									var metastore = tx.objectStore(self.metaStoreName);
+									obj.init = true;
+									install_on_request(metastore.put(obj), function(){}, function(){});;
+								});
 							});
 						} else {
-							callInitializerIfNeeded(metastore, self, indexRequestArray, callback, errorCallback);
+							fullproof.call_new_thread(callInitializerIfNeeded, database, self, indexRequestArray, callback, errorCallback);
 						}
 					}, errorCallback);
 		}
@@ -320,15 +336,13 @@ fullproof.store = fullproof.store||{};
 		function checkInit(self, database, indexRequestArray, callback, errorCallback) {
 			createStores(database, indexRequestArray, self.metaStoreName);
 			setupIndexes(self);
-			var tx = database.transaction([self.metaStoreName], self.READWRITEMODE);
-			var metastore = tx.objectStore(self.metaStoreName);
-			callInitializerIfNeeded(metastore, self, [].concat(indexRequestArray), callback, errorCallback);
+			callInitializerIfNeeded(database, self, [].concat(indexRequestArray), callback, errorCallback);
 		}
 		
 		this.indexRequests = reqIndexArray;
 		var self = this;
 		
-		var openRequest = this.indexedDB.open(this.dbName, this.dbVersion);
+		var openRequest = fullproof.store.indexedDB.open(this.dbName, this.dbVersion);
 		openRequest.onerror = function() { 
 			errorCallback() 
 		};
@@ -340,10 +354,13 @@ fullproof.store = fullproof.store||{};
 				versionreq.onerror = fullproof.make_callback_caller(errorCallback, "Can't change version with setVersion(" +self.dbVersion+")");
 				versionreq.onsuccess = function(ev) {
 					createStores(self.database, reqIndexArray, self.metaStoreName);
-					checkInit(self, self.database, self.indexRequests, callback, errorCallback);
+					checkInit(self, self.database, self.indexRequests, 
+							function() { 
+								callback(indexArrayResult); 
+							}, errorCallback);
 				}
 			} else {
-				checkInit(self, self.database, self.indexRequests, callback, errorCallback);
+				checkInit(self, self.database, self.indexRequests, fullproof.make_callback_caller(callback, indexArrayResult), errorCallback);
 			}	
 		};
 		openRequest.onupgradeneeded = function(ev) {

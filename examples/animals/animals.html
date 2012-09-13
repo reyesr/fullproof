@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Javascript Search Engine : Analyzers testing</title>
+<title>Fullproof example: Animals species database</title>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
 
 <script type="text/javascript" src="../../src/unicode/categ_letters_numbers.js"></script>
@@ -22,6 +22,7 @@
 <script type="text/javascript" src="../../src/storemanager.js"></script>
 <script type="text/javascript" src="../../src/stores/memory_store.js"></script>
 <script type="text/javascript" src="../../src/stores/websql_store.js"></script>
+<script type="text/javascript" src="../../src/stores/indexeddb_store.js"></script>
 
 <script type="text/javascript" src="animals.js"></script>
 
@@ -49,8 +50,15 @@ textarea.typebox {
 This application provides an example of fulltext search in the species database from
 the <a href="http://gapanalysis.usgs.gov/data/species-data/">U.S. Geological Survey Gap Analysis Program</a>
 </div>
+<div style="margin-top: 1em;">
+It uses a BooleanEngine, which only displays documents (here animals) that match all the searched terms. 
+It works by creating sets of results for each terms, and intersecting all the results. The BooleanEngine is
+fine when your users only want the documents that exactly match their terms. If you need to display
+results that contain any of the words typed by the user, it's better to use the ScoringEngine, which
+provides scores and result sorting.
+</div>
 
-<div style="display: none;" id="application">
+<div style="display: none; margin-top: 1em" id="application">
 	Type an animal name here:
 	<div>
 		<input type="text" id="typehere" class="typebox">
@@ -60,8 +68,11 @@ the <a href="http://gapanalysis.usgs.gov/data/species-data/">U.S. Geological Sur
 	<div style="clear:both" id="results">
 	</div>
 </div>
-<div id="loading">
-Application is loading: <span id="progress"></span>%
+<div id="loading" style="margin: 1em;">
+<div>The first time the application is displayed, fullproof initializes its search indexes. This is done only once,
+subsequent loading will use the index locally stored.</div>
+<div>Note that this can be done in the background while the application works normally for the user.</div>
+<div>Application is loading: <span id="progress"></span>%</div>
 </div>
 <script type="text/javascript">
 
