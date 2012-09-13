@@ -6,7 +6,7 @@ var MameSearch = (function(){
 	
 	function makeInitializer(progressCallback) {
 		return function(injector, callback) {
-			var synchro = fullproof.make_synchro_point(callback, data.length-1, true);
+			var synchro = fullproof.make_synchro_point(callback, data.length-1);
 			var values = [];
 			for (var i=0;i<data.length; ++i) {
 				values.push(i);

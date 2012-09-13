@@ -31,5 +31,19 @@ function createConfigManagerTest(name, configManager) {
 }
 
 
-createConfigManagerTest("cookies", new fullproof.ConfigManager(true));
-createConfigManagerTest("localStorage", new fullproof.ConfigManager());
+//createConfigManagerTest("cookies", new fullproof.ConfigManager(true));
+//createConfigManagerTest("localStorage", new fullproof.ConfigManager());
+
+test("chain", function() {
+	expect(3);
+	fullproof.chain(function(c) {
+		ok(true);
+		c();
+	}, function(c) {
+		ok(true);
+		c();
+	}, function(c) {
+		ok(true);
+		c();
+	});
+});

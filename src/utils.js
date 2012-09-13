@@ -31,6 +31,8 @@ fullproof.ScoredElement = function(value, score) {
 fullproof.ScoredElement.prototype.toString = function() {
 	return "["+this.value+"|"+this.score+"]";
 };
+fullproof.ScoredElement.prototype.getValue = function() { return this.value; }
+fullproof.ScoredElement.prototype.getScore = function() { return this.score; }
 
 fullproof.ScoredElement.comparatorObject = {
 		lower_than: function(a,b) {
@@ -58,13 +60,13 @@ fullproof.ScoredEntry = function(key, value, score) {
 	this.key = key;
 	this.value = value;
 	this.score = score===undefined?1.0:score;
-	this.toString = function() {
-		return "["+this.key+"="+this.value+"|"+this.score+"]";
-	}
 }
 fullproof.ScoredEntry.prototype = new fullproof.ScoredElement();
-
 fullproof.ScoredEntry.comparatorObject = fullproof.ScoredElement.comparatorObject;
+fullproof.ScoredEntry.prototype.getKey = function() { return this.key; };
+fullproof.ScoredEntry.prototype.toString = function() {
+	return "["+this.key+"="+this.value+"|"+this.score+"]";
+}
 
 
 
@@ -81,10 +83,13 @@ fullproof.ScoredEntry.comparatorObject = fullproof.ScoredElement.comparatorObjec
  * triggered when this function returned is called with a single argument {boolean} false.
  * @param debug if defined, some debugging information are printed to the console, if it exists.
  */
-fullproof.make_synchro_point = function(callback, expected, debug) {
+fullproof.make_synchro_point = function(callback, expected, debug, thrown_if_false) {
 	var count = 0;
 	var results = [];
 	return function(res) {
+		if (thrown_if_false !== undefined && res === false) {
+			throw thrown_if_false;
+		}
 		if (expected === false || expected === undefined) {
 			if (res === false) {
 				callback(results);
@@ -105,6 +110,16 @@ fullproof.make_synchro_point = function(callback, expected, debug) {
 	}
 }
 
+fullproof.call_new_thread = function() {
+	var args = Array.prototype.slice.call(arguments);
+	setTimeout(function() {
+		if (args.length>0) {
+			var func = args.shift();
+			func.apply(this, args);
+		}
+	}, 1);
+};
+
 /**
  * Creates and returns a function that, when called, calls the callback argument, with any number
  * of arguments.
@@ -112,10 +127,7 @@ fullproof.make_synchro_point = function(callback, expected, debug) {
  * @param {...*} varargs any number of arguments that will be applied to the callback function, when called.
  */
 fullproof.make_callback_caller = function(callback) {
-	var args = [];
-	for (var i=1; i<arguments.length; ++i) {
-		args.push(arguments[i]);
-	}
+	var args = Array.prototype.slice.call(arguments, 1);
 	return function() {
 		if (callback) {
 			callback.apply(this, args);
@@ -123,6 +135,16 @@ fullproof.make_callback_caller = function(callback) {
 	}
 };
 
+fullproof.thrower = function(e) {
+	return function() {throw e;};
+}
+
+fullproof.bind_func = function(object, func) {
+	return function() {
+		var args = Array.prototype.slice.apply(arguments)
+		return func.apply(object, args);
+	}
+};
 
 fullproof.filterObjectProperties = function(array_of_object, property) {
 	if (array_of_object instanceof fullproof.ResultSet) {
@@ -150,3 +172,6 @@ fullproof.IndexRequest = function(name, capabilities, initializer) {
 	this.initializer = initializer;
 };
 
+fullproof.isFunction = function(f) {
+	return (typeof f == "function") || (f instanceof Function);
+}

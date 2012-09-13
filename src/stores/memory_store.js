@@ -23,7 +23,7 @@ fullproof.store = fullproof.store||{};
 	function MemoryStoreIndex() {
 		this.data= {};
 		this.comparatorObject = null;
-		this.storeScores = false;
+		this.useScore= false;
 	};
 	
 	fullproof.store.MemoryStore = function() {
@@ -39,7 +39,7 @@ fullproof.store = fullproof.store||{};
 	fullproof.store.MemoryStore.getCapabilities = function() {
 		return new fullproof.Capabilities().setStoreObjects([true,false]).setVolatile(true).setAvailable(true).setUseScores([true,false]);
 	}
-	fullproof.store.MemoryStore.name = "MemoryStore";
+	fullproof.store.MemoryStore.storeName = "MemoryStore";
 
 	function openStore(parameters, callback) {
 		// ignore parameters
@@ -86,16 +86,11 @@ fullproof.store = fullproof.store||{};
 		this.indexes = {};
 		callback(this);
 	};
-		
-//	fullproof.store.MemoryStore.prototype.closeIndex = function(name, callback) {
-//		delete this.indexes[name];
-//		callback(this);
-//	};
 	
 	MemoryStoreIndex.prototype.clear = function(callback) {
 		this.data = {};
 		if (callback) {
-			callback();
+			callback(true);
 		}
 		return this;
 	}
@@ -113,7 +108,11 @@ fullproof.store = fullproof.store||{};
 		if (!this.data[key]) {
 			this.data[key] = new fullproof.ResultSet(this.comparatorObject);
 		}
-		this.data[key].insert(value);
+		if (this.useScore === false && value instanceof fullproof.ScoredElement) {
+			this.data[key].insert(value.value);
+		} else {
+			this.data[key].insert(value);
+		}
 
 		if (callback) {
 			callback(key,value);

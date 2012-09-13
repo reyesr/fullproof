@@ -3,7 +3,7 @@ fullproof = (function(NAMESPACE) {
 "use strict";
 
 	NAMESPACE.ScoredEntry.prototype.mkRandom = function(maxValue) {
-		var word = 'xxx'.replace(/./g, function(c) {return String.fromCharCode(65+parseInt(Math.random()*26));});
+		var word = 'xxxxxx'.replace(/./g, function(c) {return String.fromCharCode(65+parseInt(Math.random()*26));});
 		var value = parseInt(Math.random() * maxValue);
 		var result = new NAMESPACE.ScoredEntry(word,value,Math.random()*2);
 		return result;

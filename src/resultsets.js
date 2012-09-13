@@ -79,12 +79,12 @@ var fullproof = fullproof || {};
 	 *  If not defined, a default comparator using the javascript < operator is used. If you're only 
 	 *  storing integer values, you can safely omit this argument.
 	 */
-	fullproof.ResultSet = function(comparatorObject) {
+	fullproof.ResultSet = function(comparatorObject, data) {
 		if (!(this instanceof fullproof.ResultSet)) {
-			return new fullproof.ResultSet(comparatorObject);
+			return new fullproof.ResultSet(comparatorObject,data);
 		}
 		this.comparatorObject = comparatorObject||defaultComparator;
-		this.data = [];
+		this.data = data||[];
 		this.last_insert = undefined;
 	};
 

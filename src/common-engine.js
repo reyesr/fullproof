@@ -119,6 +119,11 @@ fullproof.AbstractEngine.prototype.checkCapabilities = function(capabilities, an
 	return true;
 }
 
+/**
+ * Adds an array of index units
+ * @param indexes an array of fullproof.IndexUnit instances
+ * @param callback the function to call when all the indexes are added
+ */
 fullproof.AbstractEngine.prototype.addIndexes =  function(indexes, callback) {
 	var starter = false;
 	var engine = this;
@@ -135,6 +140,15 @@ fullproof.AbstractEngine.prototype.addIndexes =  function(indexes, callback) {
 	}
 }
 
+/**
+ * Adds un index to the engine
+ * @param name the name of the engine
+ * @param the analyzer used to parse the text
+ * @param capabilities a fullproof.Capabilities instance describing the requirements for the index
+ * @param initializer a function called when the index is created. This function can be used to populate the index.
+ * @param completionCallback a function on completion, with true if the index was successfully added, false otherwise.
+ * @return this instance
+ */
 fullproof.AbstractEngine.prototype.addIndex = function(name, analyzer, capabilities, initializer, completionCallback) {
 	var self = this;
 	var indexData = new fullproof.IndexUnit(name,capabilities,analyzer); 
@@ -164,7 +178,7 @@ fullproof.AbstractEngine.prototype.addIndex = function(name, analyzer, capabilit
 		}
 		return false;
 	}
-	
+	return this;
 };
 
 /**
@@ -182,6 +196,7 @@ fullproof.AbstractEngine.prototype.open = function(callback, errorCallback) {
 		});
 		callback(self);
 	}, errorCallback);
+	return this;
 }
 
 /**
@@ -206,6 +221,7 @@ fullproof.AbstractEngine.prototype.injectDocument = function(text, value, callba
 			})
 		}
 	}, false);
+	return this;
 };
 
 /**
@@ -234,10 +250,20 @@ fullproof.AbstractEngine.prototype.initAbstractEngine = function() {
 	return this;
 }
 
+/**
+ * Returns an index by its name
+ * @param name the index name
+ * @return a store index 
+ */
 fullproof.AbstractEngine.prototype.getIndex = function(name) {
 	return this.indexesByName[name].index;
 }
 
+/**
+ * Returns an array with all the fullproof.IndexUnit managed by the engine, 
+ * in the same order they were added.
+ * @return an array, possibly empty, of fullproof.IndexUnit objects.
+ */
 fullproof.AbstractEngine.prototype.getIndexUnits = function() {
 	return [].concat(this.indexes);
 }

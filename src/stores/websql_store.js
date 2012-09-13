@@ -25,7 +25,7 @@ fullproof.store = fullproof.store||{};
 		this.store = null;
 		this.tableName = null;
 		this.comparatorObject = null;
-		this.storeScores = false;
+		this.useScore = false;
 		this.opened = false;
 	}
 
@@ -162,7 +162,7 @@ fullproof.store = fullproof.store||{};
 	fullproof.store.WebSQLStore.getCapabilities = function() { 
 		return new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(window.openDatabase).setUseScores([true,false]);
 	}
-	fullproof.store.WebSQLStore.name = "WebsqlStore";
+	fullproof.store.WebSQLStore.storeName = "WebsqlStore";
 
 	
 	fullproof.store.WebSQLStore.prototype.setOptions = function(params) {
@@ -242,18 +242,10 @@ fullproof.store = fullproof.store||{};
 		return this.indexes[name];
 	};
 
-//	fullproof.store.WebSQLStore.prototype.closeIndex = function(name, callback) {
-//		delete this.tables[name];
-//		callback(this);
-//	};
-	
 	WebSQLStoreIndex.prototype.clear = function(callback) {
 		var self = this;
 		this.db.transaction(function(tx) {
-			var synchro = fullproof.make_synchro_point(function() {
-				self.store.meta.setInitialized(self.tableName, false, callback);
-			});
-			tx.executeSql("DELETE FROM "+ self.tableName, [], fullproof.make_callback_caller(synchro, false), fullproof.make_callback_caller(callback, false));
+			tx.executeSql("DELETE FROM "+ self.tableName, [], fullproof.make_callback_caller(callback, true), fullproof.make_callback_caller(callback, false));
 		});
 	};
 
@@ -286,23 +278,33 @@ fullproof.store = fullproof.store||{};
 			if (progress) {
 				progress((totalSize - wArray.length)/totalSize);
 			}
+			
 			var synchronizer = fullproof.make_synchro_point(function() {
-				processBulk(wArray, vArray);
+				fullproof.call_new_thread(processBulk, wArray, vArray);
 			}, curWords.length);
+			
 			self.db.transaction(function(tx) {
 				for (var i=0; i<curWords.length; ++i) {
-					var value = vArray[i];
+					var value = curValues[i];
 					if (value instanceof fullproof.ScoredEntry) {
-						tx.executeSql("INSERT INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [value.key, value.value, value.score], synchronizer, synchronizer);
+						if (self.useScore) {
+							tx.executeSql("INSERT INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [curWords[i], value.value, value.score], synchronizer, synchronizer);
+						} else {
+							tx.executeSql("INSERT INTO " + self.tableName + " (id,value) VALUES (?,?)", [curWords[i], value.value], synchronizer, synchronizer);
+						}
 					} else {
-						tx.executeSql("INSERT INTO " + self.tableName + " (id,value) VALUES (?,?)", [wArray[i], value], 
-								function() {
-							synchronizer();
-						}, function() {
-							synchronizer(true);
-						});
+						if (self.useScore) {
+							tx.executeSql("INSERT INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [curWords[i], value, 1.0], synchronizer, synchronizer);
+						}
+						else {
+							tx.executeSql("INSERT INTO " + self.tableName + " (id,value) VALUES (?,?)", [curWords[i], value], 
+									function() {
+								synchronizer();
+							}, function() {
+								synchronizer(true);
+							});
+						}
 					}
-					
 				}
 			});
 		};
