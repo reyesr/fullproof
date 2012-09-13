@@ -230,14 +230,14 @@ fullproof.AbstractEngine.prototype.injectDocument = function(text, value, callba
  * @param callback a function called when all the indexes are cleared.
  */
 fullproof.AbstractEngine.prototype.clear = function(callback) {
-	var synchro = fullproof.make_synchro_point(callback);
+	var synchro = fullproof.make_synchro_point(callback, this.getIndexCount());
 	this.forEach(function(name, index, parser) {
 		if (name) {
 			index.clear(synchro);
 		} else {
 			synchro(false);
 		}
-	}, false);
+	});
 };
 
 /**
@@ -283,3 +283,8 @@ fullproof.AbstractEngine.prototype.forEach = function(callback) {
 	}
 	return this;
 }
+
+fullproof.AbstractEngine.prototype.getIndexCount = function() {
+	return this.indexes.length;
+}
+

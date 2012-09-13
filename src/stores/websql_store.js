@@ -224,12 +224,29 @@ fullproof.store = fullproof.store||{};
 	
 	fullproof.store.WebSQLStore.prototype.open = function(caps, reqIndexArray, callback, errorCallback) {
 		var self = this;
+		var resultArray = [];
+		
+		function chainOpenIndex(reqIndexes) {
+			if (reqIndexes.length == 0) {
+				return callback(resultArray);
+			}
+			var requestIndex = reqIndexes.shift();
+			openIndex(self, requestIndex.name, requestIndex.capabilities, requestIndex.initializer, function(index) {
+				resultArray.push(index);
+				chainOpenIndex(reqIndexes);
+			});
+		}
+		
 		openStore(this, caps, function(store) {
 			var synchro = fullproof.make_synchro_point(callback, reqIndexArray.length);
-			for (var i=0, max=reqIndexArray.length; i<max; ++i) {
-				var requestIndex = reqIndexArray[i];
-				openIndex(self, requestIndex.name, requestIndex.capabilities, requestIndex.initializer, synchro);
-			}
+			var consumedReqIndexes = [].concat(reqIndexArray);
+			
+//			for (var i=0, max=reqIndexArray.length; i<max; ++i) {
+//				var requestIndex = reqIndexArray[i];
+//				openIndex(self, requestIndex.name, requestIndex.capabilities, requestIndex.initializer, synchro);
+//			}
+			
+			chainOpenIndex([].concat(reqIndexArray));
 		});
 	};
 	
@@ -245,7 +262,12 @@ fullproof.store = fullproof.store||{};
 	WebSQLStoreIndex.prototype.clear = function(callback) {
 		var self = this;
 		this.db.transaction(function(tx) {
-			tx.executeSql("DELETE FROM "+ self.tableName, [], fullproof.make_callback_caller(callback, true), fullproof.make_callback_caller(callback, false));
+			tx.executeSql("DELETE FROM "+ self.tableName, [], function() {
+				self.store.meta.setInitialized(self.name, false, callback);	
+			}, function() {
+				fullproof.make_callback_caller(callback, false)();
+			});
+			
 		});
 	};
 
