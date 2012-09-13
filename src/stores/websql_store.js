@@ -225,7 +225,7 @@ fullproof.store = fullproof.store||{};
 	fullproof.store.WebSQLStore.prototype.open = function(caps, reqIndexArray, callback, errorCallback) {
 		var self = this;
 		var resultArray = [];
-		
+		this.dbName = caps.getDbName() || this.dbName;
 		function chainOpenIndex(reqIndexes) {
 			if (reqIndexes.length == 0) {
 				return callback(resultArray);
@@ -240,12 +240,6 @@ fullproof.store = fullproof.store||{};
 		openStore(this, caps, function(store) {
 			var synchro = fullproof.make_synchro_point(callback, reqIndexArray.length);
 			var consumedReqIndexes = [].concat(reqIndexArray);
-			
-//			for (var i=0, max=reqIndexArray.length; i<max; ++i) {
-//				var requestIndex = reqIndexArray[i];
-//				openIndex(self, requestIndex.name, requestIndex.capabilities, requestIndex.initializer, synchro);
-//			}
-			
 			chainOpenIndex([].concat(reqIndexArray));
 		});
 	};

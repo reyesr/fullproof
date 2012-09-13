@@ -102,12 +102,15 @@ fullproof.StoreManager = function(dbName, storeDescriptors) {
 			var store = new this.indexesByStore[k].ref();
 			var arr = this.indexesByStore[k];
 			var reqIndexes = [];
-			var storeCapabilities = new fullproof.Capabilities().setDbName(this.dbName);
+			var storeCapabilities = new fullproof.Capabilities(); // .setDbName(this.dbName);
 			var size = 0;
 			for (var i=0; i<arr.length; ++i) {
 				var index = this.indexes[arr[i]];
 				reqIndexes.push(index.req);
 				size += Math.max(index.req.capabilities.getDbSize(),0);
+				if (index.req.capabilities && index.req.capabilities.getDbName()) {
+					storeCapabilities.setDbName(index.req.capabilities.getDbName());
+				}
 			}
 			storeCapabilities.setDbSize(size);
 			var self = this;

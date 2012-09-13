@@ -100,7 +100,8 @@ $(document).ready(function() {
 	$("#typehere").change(search);
 	$("#reload").click(function() {
 		Animals.reloadDatabase(function() {
-			window.location.reload(true);
+				window.location.reload(true);
+			console.log("RELOAD!");
 		});	
 	});
 	
