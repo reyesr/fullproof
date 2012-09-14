@@ -68,7 +68,7 @@ provides scores and result sorting.
 	<div style="clear:both" id="results">
 	</div>
 </div>
-<div id="loading" style="margin: 1em;">
+<div id="loading" style="margin: 1em; display: none;">
 <div>The first time the application is displayed, fullproof initializes its search indexes. This is done only once,
 subsequent loading will use the index locally stored.</div>
 <div>Note that this can be done in the background while the application works normally for the user.</div>
@@ -84,6 +84,7 @@ $(document).ready(function() {
 			$("#application").show();
 		}
 	}, function(progress) {
+		$("#loading").show();
 		$("#progress").html(parseInt(progress*100));
 	});
 

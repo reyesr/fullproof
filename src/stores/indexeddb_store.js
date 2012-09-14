@@ -94,11 +94,19 @@ fullproof.store = fullproof.store||{};
 	}
 	
 	IndexedDBIndex.prototype.clear = function(callback) {
-		var tx = this.database.transaction([this.name], fullproof.store.READWRITEMODE);
-		var store = tx.objectStore(this.name);
-		var req = store.clear();
-		var cb = callback || function(){};
-		install_on_request(req, fullproof.make_callback_caller(cb, true), fullproof.make_callback_caller(cb, false));
+		callback = callback||function(){};
+		var self = this;
+		var wrongfunc = fullproof.make_callback_caller(callback, false)
+		var tx = this.database.transaction([this.name, this.parent.metaStoreName], fullproof.store.READWRITEMODE);
+		var metastore = tx.objectStore(this.parent.metaStoreName);
+		install_on_request(metastore.put({id: this.name, init: false}), function() {
+			fullproof.call_new_thread(function() {
+				var tx = self.database.transaction([self.name], fullproof.store.READWRITEMODE);
+				var store = tx.objectStore(self.name);
+				var req = store.clear();
+				install_on_request(req, fullproof.make_callback_caller(callback, true), wrongfunc);
+			});
+		}, wrongfunc);
 	}
 	
 	IndexedDBIndex.prototype.inject = function(word, value, callback) {
@@ -198,24 +206,6 @@ fullproof.store = fullproof.store||{};
 		}
 	}
 
-	IndexedDBIndex.prototype.injectBulk2 = function(wordArray, valuesArray, callback, progress) {
-		var self = this;
-		if (wordArray.length != valuesArray.length) {
-			throw "Can't injectBulk, arrays length mismatch";
-		}
-
-		var self = this;
-		var batchSize = 300;
-		
-		var tx = self.database.transaction([self.name], fullproof.store.READWRITEMODE);
-		var store = tx.objectStore(self.name);
-		var words = [];
-		var data = createMapOfWordsToResultSet(this, wordArray, valuesArray, 0, wordArray.length, words);
-		storeMapOfWords(this, store, words, data, function(res) {
-			callback(res);
-		});
-	}
-	
 	IndexedDBIndex.prototype.lookup = function(word, callback) {
 		var tx = this.database.transaction([this.name]);
 		var store = tx.objectStore(this.name);
@@ -318,13 +308,18 @@ fullproof.store = fullproof.store||{};
 			getOrCreateObject(metastore, ireq.name, {id: ireq.name, init: false}, 
 					function(obj) {
 						if (obj.init == false && ireq.initializer) {
-							ireq.initializer(self.getIndex(ireq.name), function() {
-								fullproof.call_new_thread(callInitializerIfNeeded, database, self, indexRequestArray, callback, errorCallback);
-								fullproof.call_new_thread(function() {
-									var tx = database.transaction([self.metaStoreName], fullproof.store.READWRITEMODE);
-									var metastore = tx.objectStore(self.metaStoreName);
-									obj.init = true;
-									install_on_request(metastore.put(obj), function(){}, function(){});;
+							var initIndex = self.getIndex(ireq.name);
+							fullproof.call_new_thread(function() {
+								initIndex.clear(function() {
+									ireq.initializer(self.getIndex(ireq.name), function() {
+										fullproof.call_new_thread(callInitializerIfNeeded, database, self, indexRequestArray, callback, errorCallback);
+										fullproof.call_new_thread(function() {
+											var tx = database.transaction([self.metaStoreName], fullproof.store.READWRITEMODE);
+											var metastore = tx.objectStore(self.metaStoreName);
+											obj.init = true;
+											install_on_request(metastore.put(obj), function(){}, function(){});;
+										});
+									});
 								});
 							});
 						} else {
