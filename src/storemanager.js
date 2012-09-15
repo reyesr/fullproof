@@ -33,23 +33,24 @@ fullproof.StoreDescriptor = function(name, ref) {
  * @constructor
  * @param {Array.fullproof.StoreDescriptor} storeDescriptors an array of {fullproof.StoreDescriptor} instances.
  */
-fullproof.StoreManager = function(dbName, storeDescriptors) {
+fullproof.StoreManager = function(storeDescriptors) {
 	
 	this.available = [];
-	this.dbName = dbName;
-	
+
 	if (fullproof.store) {
 		storeDescriptors = storeDescriptors || [ new fullproof.StoreDescriptor("indexeddbstore", fullproof.store.IndexedDBStore),
 		                                         new fullproof.StoreDescriptor("websqlstore", fullproof.store.WebSQLStore),
 		                             new fullproof.StoreDescriptor("memorystore", fullproof.store.MemoryStore) ];
-		for (var i=0;i<storeDescriptors.length; ++i) {
-			if (storeDescriptors[i].ref) { // only push the store if it exists (.ref != undefined)
-				this.available.push(storeDescriptors[i]);
-			}
-		}
 	}
+    if (storeDescriptors && storeDescriptors.length) {
+        for (var i=0;i<storeDescriptors.length; ++i) {
+            if (storeDescriptors[i].ref) { // only push the store if it exists (.ref != undefined)
+                this.available.push(storeDescriptors[i]);
+            }
+        }
+    }
 
-	this.indexes = {};
+    this.indexes = {};
 	this.indexesByStore = {};
 	this.storeCount = 0;
 	this.storeCache= {};
