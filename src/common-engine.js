@@ -271,7 +271,8 @@ fullproof.AbstractEngine.prototype.getIndex = function (name) {
 
 /**
  * Returns an array with all the fullproof.IndexUnit managed by the engine,
- * in the same order they were added.
+ * in the same order they were added. The returned array is a shallow copy than
+ * can be modified.
  * @return an array, possibly empty, of fullproof.IndexUnit objects.
  */
 fullproof.AbstractEngine.prototype.getIndexUnits = function () {

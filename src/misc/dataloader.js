@@ -89,46 +89,46 @@ var fullproof = fullproof || {};
         };
     };
 
-	fullproof.ConfigManager = function(forceCookies) {
-		
-		if (!(this instanceof fullproof.ConfigManager)) {
-			return new fullproof.ConfigManager(forceCookies);
-		}
-		
-		if (localStorage && !forceCookies) {
-			return new function(configName) {
-				this.set = function(key, value) {
-					localStorage.setItem(configName +"_" + key, value); 
-				};
-				this.get = function(key) {
-					return localStorage.getItem(configName + "_" + key);
-				};
-				this.remove = function(key) {
-					localStorage.removeItem(configName + "_" + key); 
-				};
-				return this;
-			};
-		} else {
-			return new function(configName) {
-				this.set = function(key, value) {
-					var date = new Date(Date.now()+(365*24*60*60*1000));
-					document.cookie = configName+"_"+key+"="+value+"; expires=" + date.toGMTString() +"; path=/";
-				};
-				this.get = function (key) {
-                    var fullkey = configName + "_" + key;
-                    var result;
-                    result = (result = new RegExp('(?:^|; )' + encodeURIComponent(fullkey) + '=([^;]*)').exec(document.cookie)) ? (result[1]) : null;
-                    return (result == "") ? null : result;
-                },
-                    this.remove = function (key) {
-                        var date = new Date(Date.now() + (24 * 60 * 60 * 1000));
-                        document.cookie = configName + "_" + key + "= ; expires=" + date.toGMTString() + "; path=/";
-                    };
-				return this;
-			};
-		}
-		
-	};
+//	fullproof.ConfigManager = function(forceCookies) {
+//
+//		if (!(this instanceof fullproof.ConfigManager)) {
+//			return new fullproof.ConfigManager(forceCookies);
+//		}
+//
+//		if (localStorage && !forceCookies) {
+//			return new function(configName) {
+//				this.set = function(key, value) {
+//					localStorage.setItem(configName +"_" + key, value);
+//				};
+//				this.get = function(key) {
+//					return localStorage.getItem(configName + "_" + key);
+//				};
+//				this.remove = function(key) {
+//					localStorage.removeItem(configName + "_" + key);
+//				};
+//				return this;
+//			};
+//		} else {
+//			return new function(configName) {
+//				this.set = function(key, value) {
+//					var date = new Date(Date.now()+(365*24*60*60*1000));
+//					document.cookie = configName+"_"+key+"="+value+"; expires=" + date.toGMTString() +"; path=/";
+//				};
+//				this.get = function (key) {
+//                    var fullkey = configName + "_" + key;
+//                    var result;
+//                    result = (result = new RegExp('(?:^|; )' + encodeURIComponent(fullkey) + '=([^;]*)').exec(document.cookie)) ? (result[1]) : null;
+//                    return (result == "") ? null : result;
+//                },
+//                    this.remove = function (key) {
+//                        var date = new Date(Date.now() + (24 * 60 * 60 * 1000));
+//                        document.cookie = configName + "_" + key + "= ; expires=" + date.toGMTString() + "; path=/";
+//                    };
+//				return this;
+//			};
+//		}
+//
+//	};
 
 	
 })();

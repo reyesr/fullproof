@@ -34,16 +34,21 @@ fullproof.BooleanEngine = function (storeDescriptors) {
      */
     this.booleanMode = fullproof.BooleanEngine.CONST_MODE_INTERSECT;
 
-    function lookup(text, callback, arrayOfIndexUnits, mode) {
+
+
+    function lookup(self, text, callback, arrayOfIndexUnits, mode) {
         if (arrayOfIndexUnits.length == 0) {
             return callback(false);
         }
         var unit = arrayOfIndexUnits.shift();
+        ++(self.lastResultIndex);
         unit.analyzer.parse(text, fullproof.make_synchro_point(function (array_of_words) {
+
+
 
             if (!array_of_words || array_of_words.length == 0) {
                 if (arrayOfIndexUnits.length > 0) {
-                    return lookup(text, callback, arrayOfIndexUnits, mode);
+                    return lookup(self, text, callback, arrayOfIndexUnits, mode);
                 } else {
                     return callback(false);
                 }
@@ -66,7 +71,7 @@ fullproof.BooleanEngine = function (storeDescriptors) {
 
                 if (curset.getSize() == 0) {
                     if (arrayOfIndexUnits.length > 0) {
-                        return lookup(text, callback, arrayOfIndexUnits, mode);
+                        return lookup(self, text, callback, arrayOfIndexUnits, mode);
                     } else {
                         callback(false);
                     }
@@ -83,7 +88,8 @@ fullproof.BooleanEngine = function (storeDescriptors) {
     }
 
     this.lookup = function (text, callback) {
-        lookup(text, callback, this.getIndexUnits(), this.booleanMode);
+        this.lastResultIndex = 0;
+        lookup(this, text, callback, this.getIndexUnits(), this.booleanMode);
         return this;
     }
 };

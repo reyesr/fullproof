@@ -120,7 +120,6 @@ fullproof.StoreManager = function(storeDescriptors) {
 				if (indexArray && indexArray.length>0) {
 					for (var i=0; i<indexArray.length; ++i) {
 						var index = indexArray[i];
-						console.log("opened ", index);
 						index.parentStore = store;
 						index.storeName = k;
 						self.indexes[index.name].index = index;

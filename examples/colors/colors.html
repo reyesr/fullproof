@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Fullproof example: Color Names</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="res/simplecssgrid-720.css" />
+    <link rel="stylesheet" type="text/css" href="res/colors.css" />
+
+    <script type="text/javascript" src="../../src/unicode/categ_letters_numbers.js"></script>
+<script type="text/javascript" src="../../src/unicode/normalizer_lowercase_nomark.js"></script>
+<script type="text/javascript" src="../../src/unicode/unicode.js"></script>
+
+<script type="text/javascript" src="../../src/analyzers.js"></script>
+<script type="text/javascript" src="../../src/normalizers.js"></script>
+<script type="text/javascript" src="../../src/normalizers/english/porter-stemmer.js"></script>
+<script type="text/javascript" src="../../src/normalizers/english/metaphone.js"></script>
+<script type="text/javascript" src="../../src/misc/dataloader.js"></script>
+<script type="text/javascript" src="../../src/capabilities.js"></script>
+
+<script type="text/javascript" src="../../src/utils.js"></script>
+<script type="text/javascript" src="../../src/boolean-engine.js"></script>
+<script type="text/javascript" src="../../src/common-engine.js"></script>
+<script type="text/javascript" src="../../src/resultsets.js"></script>
+<script type="text/javascript" src="../../src/storemanager.js"></script>
+<script type="text/javascript" src="../../src/stores/memory_store.js"></script>
+<script type="text/javascript" src="../../src/stores/websql_store.js"></script>
+<script type="text/javascript" src="../../src/stores/indexeddb_store.js"></script>
+
+</head>
+<body class="">
+<div id="header">
+    <div class="grid">
+        <h1>Colors Search Engine</h1>
+        <div>Fullproof-powered color searching</div>
+    </div>
+</div>
+<div class="grid splaining">
+    <div style="margin-top: 1em;">
+        The BooleanEngine is a simple yet very effective boolean-set based search engine, specially when searching
+        terms in a list of items. The Colors Search Engine uses the metaphone algorithm as a spare index
+        when the exact terms typed in the input box are not found.
+    </div>
+    <div>Please try it by typing any terms that may be part of a color name.</div>
+</div>
+
+<div class="formbg">
+    <div id="application" class="grid" style="display: none;">
+        <div>
+            <input type="text" id="typehere" class="typebox">
+            <button id="search">Search My Color!</button>
+        </div>
+    </div>
+</div>
+<div class="grid">
+    <div id="results"></div>
+</div>
+
+
+<script type="text/javascript">
+
+var colorsData = [];
+
+/**
+ * Loads the data (the csv file containing the color data)
+ * @param callbackWhenDone function called when loaded
+ */
+function loadData(callbackWhenDone) {
+    var loader = new fullproof.DataLoader();
+    loader.setQueue("colors.csv");
+    loader.start(fullproof.make_callback_caller(callbackWhenDone, true),
+            function(txt) {
+                colorsData = txt.split("\n");
+            }, fullproof.make_callback_caller(callbackWhenDone, false));
+}
+
+/**
+ * The initializer is a function called by the engine when the index
+ * is created for the first time. It provides an opportunity to populate
+ * the index with its data.
+ * @param {fullproof.TextInjector} injector an object of type fullproof.TextInjector
+ * @param callback function function to call when the initialization is done
+ */
+function initializer(injector, callback) {
+    var processData = function() {
+        var synchro = fullproof.make_synchro_point(callback, colorsData.length-1);
+        var values = [];
+        var textData = [];
+        for (var i=0;i<colorsData.length; ++i) {
+            var text = colorsData[i].split(";")[0];
+            if (text) {
+                values.push(i);
+                textData.push(text);
+            }
+        }
+        injector.injectBulk(textData, values, callback);
+    };
+
+    if (colorsData.length == 0) {
+        loadData(function(b) {
+            if (b) {
+                processData()
+            } else {
+                alert("Can't load a file");
+            }
+        });
+    } else {
+        processData();
+    }
+}
+
+/**
+ * This function get called when the engine is done opening itself
+ * @param b true if the engine was successfully open, false otherwise
+ */
+function engineReady(b) {
+    if (b) {
+        $("#loading").hide();
+        $("#application").show();
+    } else {
+        $("#loading").hide();
+        $("#application").hide();
+    }
+
+}
+
+$(document).ready(function() {
+    var dbName = "colors";
+    var colorSearchEngine = new fullproof.BooleanEngine([new fullproof.StoreDescriptor("memorystore", fullproof.store.MemoryStore)]);
+
+    // Loads the color data from the csv, then creates the index descriptors and uses them to open the indexes
+    loadData(function() {
+        var index1 = {
+            name: "normalindex",
+            analyzer: new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.normalizer.remove_duplicate_letters),
+            capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName),
+            initializer: initializer
+        };
+        var index2 = {
+            name: "stemmedindex",
+            analyzer: new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.english.metaphone),
+            capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName),
+            initializer: initializer
+        };
+
+        colorSearchEngine.addIndexes([index1, index2], function(res) {
+            colorSearchEngine.open(fullproof.make_callback_caller(engineReady, true), fullproof.make_callback_caller(engineReady, false));
+        });
+
+    });
+
+    /**
+     * The seach function manages the terms lookup and result display
+     */
+	function search() {
+		var value = $("#typehere").val();
+		
+        // Request a search to the colorSearchEengine, then displays the results, if any.
+		colorSearchEngine.lookup(value, function(resultset) {
+            var result ="";
+            if (resultset && resultset.getSize()) {
+                if (colorSearchEngine.lastResultIndex == 1) {
+                    result = "<h1>Found " + resultset.getSize() + " color"+(resultset.getSize()>1?"s":"")+" matching your request.</h1>";
+                } else {
+                    result = "<h1>No match for '" + value + "', but found " + resultset.getSize() + " approximate match"+(resultset.getSize()>1?"es":"")+".</h1>";
+                }
+
+                result += "<table><tr><th>Color Name</th><th>Sample</th><th>Hex Code</th></tr>"
+                resultset.forEach(function(e) {
+                   var c = colorsData[e].split(";");
+                    result += "<tr>";
+                    result += "<td style='font-weight: bold;'>"+c[0]+"</td>";
+                    result += "<td style='width: 2em; background-color: "+c[1]+"'>&nbsp;</td>";
+                    result += "<td>"+c[1]+"</td>";
+                    result += "</tr>";
+                });
+                result += "</table>";
+            } else {
+                result = "<h2>No result found.</h2>";
+            }
+			$("#results").html(result);
+		});
+	}
+
+    // Bind the search action
+	$("#search").click(search);
+	$("#typehere").change(search);
+
+});</script>
+</body>
+</html>
