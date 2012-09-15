@@ -20,19 +20,23 @@ var fullproof = fullproof || {};
  * An object that associates a value and a numerical score
  * @constructor
  */
-fullproof.ScoredElement = function(value, score) {
-	if (!(this instanceof fullproof.ScoredElement)) {
-		return new fullproof.ScoredElement(value, score);
-	}
-	this.value = value;
-	this.score = score===undefined?1.0:score;
-}
+fullproof.ScoredElement = function (value, score) {
+    if (!(this instanceof fullproof.ScoredElement)) {
+        return new fullproof.ScoredElement(value, score);
+    }
+    this.value = value;
+    this.score = score === undefined ? 1.0 : score;
+};
 
 fullproof.ScoredElement.prototype.toString = function() {
 	return "["+this.value+"|"+this.score+"]";
 };
-fullproof.ScoredElement.prototype.getValue = function() { return this.value; }
-fullproof.ScoredElement.prototype.getScore = function() { return this.score; }
+fullproof.ScoredElement.prototype.getValue = function () {
+    return this.value;
+};
+fullproof.ScoredElement.prototype.getScore = function () {
+    return this.score;
+};
 
 fullproof.ScoredElement.comparatorObject = {
 		lower_than: function(a,b) {
@@ -53,20 +57,20 @@ fullproof.ScoredElement.mergeFn = function(a,b) {
  * @constructor
  * @extends {fullproof.ScoredElement}
  */
-fullproof.ScoredEntry = function(key, value, score) {
-	if (!(this instanceof fullproof.ScoredEntry)) {
-		return new fullproof.ScoredEntry(key, value, score);
-	}
-	this.key = key;
-	this.value = value;
-	this.score = score===undefined?1.0:score;
-}
+fullproof.ScoredEntry = function (key, value, score) {
+    if (!(this instanceof fullproof.ScoredEntry)) {
+        return new fullproof.ScoredEntry(key, value, score);
+    }
+    this.key = key;
+    this.value = value;
+    this.score = score === undefined ? 1.0 : score;
+};
 fullproof.ScoredEntry.prototype = new fullproof.ScoredElement();
 fullproof.ScoredEntry.comparatorObject = fullproof.ScoredElement.comparatorObject;
 fullproof.ScoredEntry.prototype.getKey = function() { return this.key; };
-fullproof.ScoredEntry.prototype.toString = function() {
-	return "["+this.key+"="+this.value+"|"+this.score+"]";
-}
+fullproof.ScoredEntry.prototype.toString = function () {
+    return "[" + this.key + "=" + this.value + "|" + this.score + "]";
+};
 
 
 
@@ -78,37 +82,37 @@ fullproof.ScoredEntry.prototype.toString = function() {
  * receives a false boolean value as argument (expected has to be either undefined or false)
 
  * @param {function} callback the function to call when the synchronization point is reached
- * @param {number} expected defines the synchronization point. If this is a number, the synchronization is 
+ * @param {number} expected defines the synchronization point. If this is a number, the synchronization is
  * triggered when the function returned is called this number of times. If this is set undefined, the sync is
  * triggered when this function returned is called with a single argument {boolean} false.
  * @param debug if defined, some debugging information are printed to the console, if it exists.
  */
-fullproof.make_synchro_point = function(callback, expected, debug, thrown_if_false) {
-	var count = 0;
-	var results = [];
-	return function(res) {
-		if (thrown_if_false !== undefined && res === false) {
-			throw thrown_if_false;
-		}
-		if (expected === false || expected === undefined) {
-			if (res === false) {
-				callback(results);
-			} else {
-				results.push(res);
-			}
-		} else {
-			
-			++count;
-			results.push(res);
-			if (debug && console.log) {
-				console.log("synchro point " + (typeof debug == "string"?debug+": ":": ") + count + " / " + expected);
-			}
-			if (count == expected) {
-				callback(results);
-			}
-		}
-	}
-}
+fullproof.make_synchro_point = function (callback, expected, debug, thrown_if_false) {
+    var count = 0;
+    var results = [];
+    return function (res) {
+        if (thrown_if_false !== undefined && res === false) {
+            throw thrown_if_false;
+        }
+        if (expected === false || expected === undefined) {
+            if (res === false) {
+                callback(results);
+            } else {
+                results.push(res);
+            }
+        } else {
+
+            ++count;
+            results.push(res);
+            if (debug && console.log) {
+                console.log("synchro point " + (typeof debug == "string" ? debug + ": " : ": ") + count + " / " + expected);
+            }
+            if (count == expected) {
+                callback(results);
+            }
+        }
+    }
+};
 
 fullproof.call_new_thread = function() {
 	var args = Array.prototype.slice.call(arguments);
@@ -135,27 +139,29 @@ fullproof.make_callback_caller = function(callback) {
 	}
 };
 
-fullproof.thrower = function(e) {
-	return function() {throw e;};
-}
+fullproof.thrower = function (e) {
+    return function () {
+        throw e;
+    };
+};
 
 fullproof.bind_func = function(object, func) {
 	return function() {
-		var args = Array.prototype.slice.apply(arguments)
+		var args = Array.prototype.slice.apply(arguments);
 		return func.apply(object, args);
 	}
 };
 
-fullproof.filterObjectProperties = function(array_of_object, property) {
-	if (array_of_object instanceof fullproof.ResultSet) {
-		array_of_object = array_of_object.getDataUnsafe();
-	}
-	var result = [];
-	for (var i=0,max=array_of_object.length; i<max; ++i) {
-		result.push(array_of_object[i][property]);
-	}
-	return result;
-}
+fullproof.filterObjectProperties = function (array_of_object, property) {
+    if (array_of_object instanceof fullproof.ResultSet) {
+        array_of_object = array_of_object.getDataUnsafe();
+    }
+    var result = [];
+    for (var i = 0, max = array_of_object.length; i < max; ++i) {
+        result.push(array_of_object[i][property]);
+    }
+    return result;
+};
 
 
 /**
@@ -172,6 +178,35 @@ fullproof.IndexRequest = function(name, capabilities, initializer) {
 	this.initializer = initializer;
 };
 
-fullproof.isFunction = function(f) {
-	return (typeof f == "function") || (f instanceof Function);
+fullproof.isFunction = function (f) {
+    return (typeof f == "function") || (f instanceof Function);
+};
+
+/**
+ * An HashMap structure that uses a javascript object to store its data, and prefixes all the keys
+ * with a '$' to avoid name conflict with object properties.
+ * @constructor
+ */
+fullproof.HMap = function() {
+}
+
+fullproof.HMap.prototype.put = function(k,v) {
+    this["$"+k] = v;
+}
+fullproof.HMap.prototype.putInArray = function(k,v) {
+    var $k = "$"+k;
+    if (!this[$k] || this[$k].constructor !== Array) {
+        this[$k] = [];
+    }
+    this[$k].push(v);
+}
+fullproof.HMap.prototype.get = function(k) {
+    return this["$"+k];
+}
+fullproof.HMap.prototype.forEach = function(func) {
+    for (var k in this) {
+       if ("$" === k[0]) {
+           func(k.substring(1));
+       }
+    }
 }

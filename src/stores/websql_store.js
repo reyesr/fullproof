@@ -147,21 +147,21 @@ fullproof.store = fullproof.store||{};
 			return new fullproof.store.WebSQLStore();
 		}
 				
-		this.internal_init = function() {
-			this.db = null;
-			this.meta = null;
-			this.tables = {};
-			this.indexes = {};
-			this.opened= false;
-			this.dbName = "fullproof";
-			this.dbSize = 1024*1024*5;
-		}
+		this.internal_init = function () {
+            this.db = null;
+            this.meta = null;
+            this.tables = {};
+            this.indexes = {};
+            this.opened = false;
+            this.dbName = "fullproof";
+            this.dbSize = 1024 * 1024 * 5;
+        };
 		this.internal_init();
 	};
 	
-	fullproof.store.WebSQLStore.getCapabilities = function() { 
-		return new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(window.openDatabase).setUseScores([true,false]);
-	}
+	fullproof.store.WebSQLStore.getCapabilities = function () {
+        return new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(window.openDatabase).setUseScores([true, false]);
+    };
 	fullproof.store.WebSQLStore.storeName = "WebsqlStore";
 
 	
@@ -194,10 +194,16 @@ fullproof.store = fullproof.store||{};
 				self.meta.createIndex(name, function() {
 					self.indexes[name] = index;
 					if (initializer) {
-						initializer(index, function() {
-							index.opened = true;
-							self.meta.setInitialized(name, true, fullproof.make_callback_caller(callback, index));
-						});
+                        fullproof.call_new_thread(function() {
+                            index.clear(function() {
+                                fullproof.call_new_thread(function() {
+                                    initializer(index, function() {
+                                        index.opened = true;
+                                        self.meta.setInitialized(name, true, fullproof.make_callback_caller(callback, index));
+                                    });
+                                });
+                            });
+                        });
 					} else {
 						callback(index);
 					}
@@ -286,6 +292,7 @@ fullproof.store = fullproof.store||{};
 		var bulk_synchro = fullproof.make_synchro_point(callback, undefined, true);
 		var totalSize = wordArray.length;
 		var processBulk = function(wArray, vArray) {
+            console.log("injectBulk iteration, rem:     " + vArray.length);
 			var curWords = wArray.splice(0, batchSize<wArray.length?batchSize:wArray.length);
 			var curValues = vArray.splice(0, batchSize<vArray.length?batchSize:vArray.length);
 			if (curWords.length == 0) {
@@ -304,7 +311,9 @@ fullproof.store = fullproof.store||{};
 					var value = curValues[i];
 					if (value instanceof fullproof.ScoredEntry) {
 						if (self.useScore) {
-							tx.executeSql("INSERT INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [curWords[i], value.value, value.score], synchronizer, synchronizer);
+							tx.executeSql("INSERT INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [curWords[i], value.value, value.score], synchronizer, function() {
+                                console.log("ERROR SQL");
+                            });
 						} else {
 							tx.executeSql("INSERT INTO " + self.tableName + " (id,value) VALUES (?,?)", [curWords[i], value.value], synchronizer, synchronizer);
 						}

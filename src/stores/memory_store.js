@@ -36,9 +36,9 @@ fullproof.store = fullproof.store||{};
 		return this;
 	};
 
-	fullproof.store.MemoryStore.getCapabilities = function() {
-		return new fullproof.Capabilities().setStoreObjects([true,false]).setVolatile(true).setAvailable(true).setUseScores([true,false]);
-	}
+	fullproof.store.MemoryStore.getCapabilities = function () {
+        return new fullproof.Capabilities().setStoreObjects([true, false]).setVolatile(true).setAvailable(true).setUseScores([true, false]);
+    };
 	fullproof.store.MemoryStore.storeName = "MemoryStore";
 
 	function openStore(parameters, callback) {
@@ -53,6 +53,7 @@ fullproof.store = fullproof.store||{};
 		var useScore = parameters.getUseScores()!==undefined?(parameters.getUseScores()):false;
 		index.comparatorObject = parameters.getComparatorObject()?parameters.getComparatorObject():(useScore?fullproof.ScoredElement.comparatorObject:undefined);
 		index.useScore = useScore;
+        index.name = name;
 		store.indexes[name] = index;
 		if (initializer) {
 			initializer(index, function() {
@@ -68,7 +69,7 @@ fullproof.store = fullproof.store||{};
 		var self = this;
 		openStore(caps, function(store) {
 			var synchro = fullproof.make_synchro_point(function(result) {
-				callback(store);
+				callback(result);
 			}, reqIndexArray.length);
 			for (var i=0, max=reqIndexArray.length; i<max; ++i) {
 				var requestIndex = reqIndexArray[i];
@@ -87,13 +88,13 @@ fullproof.store = fullproof.store||{};
 		callback(this);
 	};
 	
-	MemoryStoreIndex.prototype.clear = function(callback) {
-		this.data = {};
-		if (callback) {
-			callback(true);
-		}
-		return this;
-	}
+	MemoryStoreIndex.prototype.clear = function (callback) {
+        this.data = {};
+        if (callback) {
+            callback(true);
+        }
+        return this;
+    };
 	
 	/**
 	 * Inject data. Can be called as follows:
@@ -121,8 +122,12 @@ fullproof.store = fullproof.store||{};
 		return this;
 	};
 
-	MemoryStoreIndex.prototype.injectBulk = function(keyArray, valueArray, callback) {
+	MemoryStoreIndex.prototype.injectBulk = function(keyArray, valueArray, callback, progress) {
 		for (var i=0; i<keyArray.length && i<valueArray.length; ++i) {
+            if (i%1000 == 0 && progress) {
+                progress(i / keyArray.length);
+
+            }
 			this.inject(keyArray[i], valueArray[i]);
 		}
 		if (callback) {

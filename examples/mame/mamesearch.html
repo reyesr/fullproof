@@ -11,7 +11,7 @@
 
 <script type="text/javascript" src="../../src/analyzers.js"></script>
 <script type="text/javascript" src="../../src/normalizers.js"></script>
-<script type="text/javascript" src="../../src/normalizers/english/porter-stemmer.js"></script>
+<script type="text/javascript" src="../../src/normalizers/english/metaphone.js"></script>
 <script type="text/javascript" src="../../src/misc/dataloader.js"></script>
 <script type="text/javascript" src="../../src/capabilities.js"></script>
 
@@ -21,9 +21,10 @@
 <script type="text/javascript" src="../../src/resultsets.js"></script>
 <script type="text/javascript" src="../../src/storemanager.js"></script>
 <script type="text/javascript" src="../../src/stores/memory_store.js"></script>
-<script type="text/javascript" src="../../src/stores/websql_store.js"></script>
+    <script type="text/javascript" src="../../src/stores/websql_store.js"></script>
+    <script type="text/javascript" src="../../src/stores/indexeddb_store.js"></script>
 
-<script type="text/javascript" src="mamesearch.js"></script>
+    <script type="text/javascript" src="mamesearch.js"></script>
 
 <style TYPE="text/css">
 
@@ -46,13 +47,12 @@ textarea.typebox {
 <h1>Search the MAME ROMs</h1>
 
 <div>
-This application provides an example of fulltext search in database of ROMs supported by 
+This sampple application provides an example of fulltext search in the database of ROMs supported by
 <a href="http://mamedev.org/">the MAME emulator</a>. 
 </div>
 <div>
-It uses the ScoringEngine to provide 
-a set of matching roms, by name, sorted by search score. The score is displayed in the results,
-although an application should typically hide it to the users.
+It uses the ScoringEngine to search for results in the inverted indexes, and sorts them according to a score
+evaluated according to the scoring rules defined in the engine.
 </div>
 
 <div style="display: none;" id="application">

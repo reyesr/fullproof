@@ -93,21 +93,21 @@ fullproof.store = fullproof.store||{};
 		};
 	}
 	
-	IndexedDBIndex.prototype.clear = function(callback) {
-		callback = callback||function(){};
-		var self = this;
-		var wrongfunc = fullproof.make_callback_caller(callback, false)
-		var tx = this.database.transaction([this.name, this.parent.metaStoreName], fullproof.store.READWRITEMODE);
-		var metastore = tx.objectStore(this.parent.metaStoreName);
-		install_on_request(metastore.put({id: this.name, init: false}), function() {
-			fullproof.call_new_thread(function() {
-				var tx = self.database.transaction([self.name], fullproof.store.READWRITEMODE);
-				var store = tx.objectStore(self.name);
-				var req = store.clear();
-				install_on_request(req, fullproof.make_callback_caller(callback, true), wrongfunc);
-			});
-		}, wrongfunc);
-	}
+	IndexedDBIndex.prototype.clear = function (callback) {
+        callback = callback || function(){};
+        var self = this;
+        var wrongfunc = fullproof.make_callback_caller(callback, false);
+        var tx = this.database.transaction([this.name, this.parent.metaStoreName], fullproof.store.READWRITEMODE);
+        var metastore = tx.objectStore(this.parent.metaStoreName);
+        install_on_request(metastore.put({id:this.name, init:false}), function () {
+            fullproof.call_new_thread(function () {
+                var tx = self.database.transaction([self.name], fullproof.store.READWRITEMODE);
+                var store = tx.objectStore(self.name);
+                var req = store.clear();
+                install_on_request(req, fullproof.make_callback_caller(callback, true), wrongfunc);
+            });
+        }, wrongfunc);
+    };
 	
 	IndexedDBIndex.prototype.inject = function(word, value, callback) {
 		var tx = this.database.transaction([this.name], fullproof.store.READWRITEMODE);
@@ -128,24 +128,34 @@ fullproof.store = fullproof.store||{};
 			setObject(store, obj, callback, fullproof.make_callback_caller(callback, false));
 		}, fullproof.make_callback_caller(callback,false));
 	};
-	
+
+    var storedObjectComparator = {
+        lower_than: function(a,b) {
+            return a.v<b.v;
+        },
+        equals: function(a,b) {
+            return a.v== b.v;
+        }
+    };
+
 	function createMapOfWordsToResultSet(self, wordArray, valuesArray, offset, count, resultPropertiesAsArray) {
-		var result = {};
+		var result = new fullproof.HMap();
 		for (; offset < count; ++offset) {
 			var word = wordArray[offset];
 			var value = valuesArray[offset];
-			resultPropertiesAsArray.push(word);
-			if (result[word] === undefined) {
-				result[word] = new fullproof.ResultSet(self.comparatorObject);
-			}
+			if (result.get(word) === undefined) {
+				result.put(word, new fullproof.ResultSet(storedObjectComparator));
+                resultPropertiesAsArray.push(word);
+            }
 			if (value instanceof fullproof.ScoredElement) {
 				if (self.useScore) {
-					result[word].insert({v:value.value, s:value.score});
+                    var rs = result.get(word);
+                    rs.insert({v:value.value, s:value.score});
 				} else {
-					result[word].insert(value.value);
+                    result.get(word).insert(value.value);
 				}
 			} else {
-				result[word].insert(value);
+                result.get(word).insert(value);
 			}
 		}
 		return result;
@@ -153,12 +163,15 @@ fullproof.store = fullproof.store||{};
 
 	function storeMapOfWords(self, store, words, data, callback, offset, max) {
 		if (words.length>0 && offset < max) {
-			var word = words[offset]
-			var value = data[word];
+			var word = words[offset];
+			var value = data.get(word);
 			getOrCreateObject(store, word, function() { return {key:word,v:[]} }, function(obj) {
 				var rs = new fullproof.ResultSet(self.comparatorObject).setDataUnsafe(obj.v);
 				rs.merge(value);
 				obj.v = rs.getDataUnsafe();
+                if (obj.v.length > 1) {
+                    console.log("MORE THAN 1");
+                }
 				setObject(store, obj, function() {
 					storeMapOfWords(self, store, words, data, callback, offset+1, max);
 				}, function() { callback(false); });
@@ -168,43 +181,39 @@ fullproof.store = fullproof.store||{};
 		}
 	}
 
-	IndexedDBIndex.prototype.injectBulk = function(wordArray, valuesArray, callback, progress) {
-		var self = this;
-		if (wordArray.length != valuesArray.length) {
-			throw "Can't injectBulk, arrays length mismatch";
-		}
+	IndexedDBIndex.prototype.injectBulk = function (wordArray, valuesArray, callback, progress) {
+        var self = this;
+        if (wordArray.length != valuesArray.length) {
+            throw "Can't injectBulk, arrays length mismatch";
+        }
 
-		var self = this;
-		var batchSize = 100;
-		
-		var words = [];
-		var data = createMapOfWordsToResultSet(this, wordArray, valuesArray, 0, wordArray.length, words);
+        var self = this;
+        var batchSize = 100;
 
-		var synchronizer = fullproof.make_synchro_point(function(res) {
-			
-		});
-		
-		function storeData(self, words, data, callback, progress, offset) {
-			if (progress) {
-				progress(offset / words.length);
-			}
-			var tx = self.database.transaction([self.name], fullproof.store.READWRITEMODE);
-			var store = tx.objectStore(self.name);
-			storeMapOfWords(self, store, words, data, function(res) {
-				if (offset < words.length) {
-					fullproof.call_new_thread(storeData, self, words, data, callback, progress, offset + batchSize)
-				} else {
-					callback(res);
-				}
-			}, offset, Math.min(offset + batchSize, words.length));
-		}
+        var words = [];
+        var data = createMapOfWordsToResultSet(this, wordArray, valuesArray, 0, wordArray.length, words);
 
-		if (words.length>0) {
-			storeData(this, words, data, callback, progress, 0)
-		} else {
-			callback(true);
-		}
-	}
+        function storeData(self, words, data, callback, progress, offset) {
+            if (progress) {
+                progress(offset / words.length);
+            }
+            var tx = self.database.transaction([self.name], fullproof.store.READWRITEMODE);
+            var store = tx.objectStore(self.name);
+            storeMapOfWords(self, store, words, data, function (res) {
+                if (offset < words.length) {
+                    fullproof.call_new_thread(storeData, self, words, data, callback, progress, offset + batchSize)
+                } else {
+                    callback(res);
+                }
+            }, offset, Math.min(offset + batchSize, words.length));
+        }
+
+        if (words.length > 0) {
+            storeData(this, words, data, callback, progress, 0)
+        } else {
+            callback(true);
+        }
+    };
 
 	IndexedDBIndex.prototype.lookup = function(word, callback) {
 		var tx = this.database.transaction([this.name]);
@@ -229,24 +238,24 @@ fullproof.store = fullproof.store||{};
 	};
 	
 	/**
-	 * IndexedDBStore stores the inverted indexes in a local IndexedDB database.
-	 * @constructor
-	 */
-	fullproof.store.IndexedDBStore = function(version) {
+     * IndexedDBStore stores the inverted indexes in a local IndexedDB database.
+     * @constructor
+     */
+    fullproof.store.IndexedDBStore = function (version) {
 
-		this.database = null;
-		this.meta = null;
-		this.metaStoreName = "fullproof_metatable";
-		this.stores = {};
-		this.opened= false;
-		this.dbName = "fullproof";
-		this.dbSize = 1024*1024*5;
-		this.dbVersion = version||"1.0";
-	}
+        this.database = null;
+        this.meta = null;
+        this.metaStoreName = "fullproof_metatable";
+        this.stores = {};
+        this.opened = false;
+        this.dbName = "fullproof";
+        this.dbSize = 1024 * 1024 * 5;
+        this.dbVersion = version || "1.0";
+    };
 	fullproof.store.IndexedDBStore.storeName = "MemoryStore";
-	fullproof.store.IndexedDBStore.getCapabilities = function() { 
-		return new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(fullproof.store.indexedDB != null).setUseScores([true,false]);
-	}
+	fullproof.store.IndexedDBStore.getCapabilities = function () {
+        return new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(fullproof.store.indexedDB != null).setUseScores([true, false]);
+    };
 	
 	fullproof.store.IndexedDBStore.prototype.setOptions = function(params) {
 		this.dbSize = params.dbSize||this.dbSize;
@@ -282,16 +291,14 @@ fullproof.store = fullproof.store||{};
 
 		var updated = false;
 		var self = this;
-		var useScore = caps.getUseScores()!==undefined?(caps.getUseScores()):false;
-		
+
 		var indexArrayResult = [];
 		
 		function setupIndexes(self) {
 			for (var i=0; i<self.indexRequests.length; ++i) {
 				var ireq =self.indexRequests[i];
 				var compObj = ireq.capabilities.getComparatorObject()?ireq.capabilities.getComparatorObject():(self.useScore?fullproof.ScoredElement.comparatorObject:undefined);
-				var index = new IndexedDBIndex(self, self.database, ireq.name, compObj);
-				index.useScore = useScore;
+				var index = new IndexedDBIndex(self, self.database, ireq.name, compObj, ireq.capabilities.getUseScores());
 				self.stores[ireq.name] = index;
 				indexArrayResult.push(index);
 			}					
@@ -366,9 +373,9 @@ fullproof.store = fullproof.store||{};
 	};
 
 	
-	fullproof.store.IndexedDBStore.prototype.close = function(callback) {
-		callback();
-	}
+	fullproof.store.IndexedDBStore.prototype.close = function (callback) {
+        callback();
+    };
 
 	fullproof.store.IndexedDBStore.prototype.getIndex = function(name) {
 		return this.stores[name];

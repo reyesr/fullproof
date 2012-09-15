@@ -32,62 +32,62 @@ var fullproof = fullproof || {};
 		throw "Error, can't find a suitable XMLHttpRequest object";
 	}
 
-	fullproof.DataLoader = function() {
-		
-		if (!(this instanceof fullproof.DataLoader)) {
-			return new fullproof.DataLoader();
-		}
-		
-		var loadQueue = [];
-		var currentQueue = [];
-		
-		this.setQueue = function() {
-			for (var i=0; i<arguments.length; ++i) {
-				if (arguments[i].constructor == Array) {
-					loadQueue = loadQueue.concat(arguments[i]);
-				} else {
-					loadQueue.push(arguments[i]);
-				}
-			}
-			return this;
-		}
-		
-		var processQueue = function(completeCallback, fileLoadedCallback, fileFailedCallback) {
-			
-			if (currentQueue.length == 0) {
-				completeCallback();
-				return;
-			}
-			
-			var element = currentQueue.shift();
-			
-			var request = getNewXmlHttpRequest();
-			request.onreadystatechange = function() {
-			   if (request.readyState == 4)  { 
-				   if (request.status != 200)  {
-				     // Handle error, e.g. Display error message on page
-				     if (fileFailedCallback) {
-				    	 fileFailedCallback(element);
-						 processQueue(completeCallback, fileLoadedCallback, fileFailedCallback);
-				     }
-				   } else {
-					   var serverResponse = request.responseText;
-					   if (fileLoadedCallback) {
-						   fileLoadedCallback(serverResponse, element);
-						   processQueue(completeCallback, fileLoadedCallback, fileFailedCallback);
-					   }
-				   }
-			   }
-			};
-			request.open("GET", element, true);
-			request.send(null);
-		}
-		
-		this.start = function(completeCallback, fileLoadedCallback, fileFailedCallback) {
-			currentQueue = [].concat(loadQueue);
-			processQueue(completeCallback, fileLoadedCallback, fileFailedCallback);
-		};
-	}
+	fullproof.DataLoader = function () {
+
+        if (!(this instanceof fullproof.DataLoader)) {
+            return new fullproof.DataLoader();
+        }
+
+        var loadQueue = [];
+        var currentQueue = [];
+
+        this.setQueue = function () {
+            for (var i = 0; i < arguments.length; ++i) {
+                if (arguments[i].constructor == Array) {
+                    loadQueue = loadQueue.concat(arguments[i]);
+                } else {
+                    loadQueue.push(arguments[i]);
+                }
+            }
+            return this;
+        };
+
+        var processQueue = function (completeCallback, fileLoadedCallback, fileFailedCallback) {
+
+            if (currentQueue.length == 0) {
+                completeCallback();
+                return;
+            }
+
+            var element = currentQueue.shift();
+
+            var request = getNewXmlHttpRequest();
+            request.onreadystatechange = function () {
+                if (request.readyState == 4) {
+                    if (request.status != 200) {
+                        // Handle error, e.g. Display error message on page
+                        if (fileFailedCallback) {
+                            fileFailedCallback(element);
+                            processQueue(completeCallback, fileLoadedCallback, fileFailedCallback);
+                        }
+                    } else {
+                        var serverResponse = request.responseText;
+                        if (fileLoadedCallback) {
+                            fileLoadedCallback(serverResponse, element);
+                            processQueue(completeCallback, fileLoadedCallback, fileFailedCallback);
+                        }
+                    }
+                }
+            };
+            request.open("GET", element, true);
+            request.send(null);
+        };
+
+        this.start = function (completeCallback, fileLoadedCallback, fileFailedCallback) {
+            currentQueue = [].concat(loadQueue);
+            processQueue(completeCallback, fileLoadedCallback, fileFailedCallback);
+        };
+    };
 
 	fullproof.ConfigManager = function(forceCookies) {
 		
@@ -114,16 +114,16 @@ var fullproof = fullproof || {};
 					var date = new Date(Date.now()+(365*24*60*60*1000));
 					document.cookie = configName+"_"+key+"="+value+"; expires=" + date.toGMTString() +"; path=/";
 				};
-				this.get = function(key) {
-					var fullkey = configName + "_" + key;
-					var result;
-				    result = (result = new RegExp('(?:^|; )' + encodeURIComponent(fullkey) + '=([^;]*)').exec(document.cookie)) ? (result[1]) : null;
-				    return (result == "")?null:result;
-				},
-				this.remove = function(key) {
-					var date = new Date(Date.now()+(24*60*60*1000));
-					document.cookie = configName+"_"+key+"= ; expires=" + date.toGMTString() +"; path=/";
-				}
+				this.get = function (key) {
+                    var fullkey = configName + "_" + key;
+                    var result;
+                    result = (result = new RegExp('(?:^|; )' + encodeURIComponent(fullkey) + '=([^;]*)').exec(document.cookie)) ? (result[1]) : null;
+                    return (result == "") ? null : result;
+                },
+                    this.remove = function (key) {
+                        var date = new Date(Date.now() + (24 * 60 * 60 * 1000));
+                        document.cookie = configName + "_" + key + "= ; expires=" + date.toGMTString() + "; path=/";
+                    };
 				return this;
 			};
 		}

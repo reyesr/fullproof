@@ -17,35 +17,35 @@
 var fullproof = fullproof||{};
 
 /**
- * This engine is based on scoring. During the injection of document, the parser must provide {fullproof.ScoredElement} 
+ * This engine is based on scoring. During the injection of document, the parser must provide {fullproof.ScoredElement}
  * instances instead of primary values. The score is used to sort the results.
- * 
+ *
  * @constructor
  */
-fullproof.ScoringEngine = function() {
-	if (!(this instanceof fullproof.ScoringEngine)) {
-		return new fullproof.ScoringEngine();
-	}
-	
-	this.initAbstractEngine();
-}
+fullproof.ScoringEngine = function (storeDescriptors) {
+    if (!(this instanceof fullproof.ScoringEngine)) {
+        return new fullproof.ScoringEngine(storeDescriptors);
+    }
+
+    this.initAbstractEngine(storeDescriptors);
+};
 
 fullproof.AbstractEngine = fullproof.AbstractEngine || (function() {});
 fullproof.ScoringEngine.prototype = new fullproof.AbstractEngine;
 
-fullproof.ScoringEngine.prototype.checkCapabilities = function(capabilities, analyzer) {
-	if (capabilities.getUseScores() !== true) {
-		throw "capabilities.getUseScore() must be true";
-	}
-	if (analyzer.provideScore !== true) {
-		throw "analyzer.provideScore must be true";
-	}
-	if (!capabilities.getComparatorObject()) {
-		throw "capabilities.getComparatorObject() must return a valid comparator";
-	}
-	
-	return true;
-}
+fullproof.ScoringEngine.prototype.checkCapabilities = function (capabilities, analyzer) {
+    if (capabilities.getUseScores() !== true) {
+        throw "capabilities.getUseScore() must be true";
+    }
+    if (analyzer.provideScore !== true) {
+        throw "analyzer.provideScore must be true";
+    }
+    if (!capabilities.getComparatorObject()) {
+        throw "capabilities.getComparatorObject() must return a valid comparator";
+    }
+
+    return true;
+};
 
 fullproof.ScoringEngine.prototype.lookup = function(text, callback) {
 	

@@ -85,30 +85,30 @@ var fullproof = fullproof||{};
 		this.sendFalseWhenComplete = true;
 		
 		/**
-		 * The main method: cuts the text in words, calls the normalizers on each word,
-		 * then calls the callback with each non empty word.
-		 * @param text the text to analyze
-		 * @param callback a function called with each word found in the text.
-		 */
-		this.parse = function(text, callback) {
-			var self = this;
-			simple_parser(text, function(word) {
-				if (typeof word == "string") {
-					word = word.trim();
-					if (word != "") {
-						for (var i=0; i<normalizers.length; ++i) {
-							word = normalizers[i](word);
-						}
-					}
+         * The main method: cuts the text in words, calls the normalizers on each word,
+         * then calls the callback with each non empty word.
+         * @param text the text to analyze
+         * @param callback a function called with each word found in the text.
+         */
+        this.parse = function (text, callback) {
+            var self = this;
+            simple_parser(text, function (word) {
+                if (typeof word == "string") {
+                    word = word.trim();
+                    if (word != "") {
+                        for (var i = 0; i < normalizers.length; ++i) {
+                            word = normalizers[i](word);
+                        }
+                    }
 
-					if (callback && word && word != "") {
-						callback(word);
-					}
-				} else if (word===false && self.sendFalseWhenComplete && callback) {
-					callback(word);
-				}
-			});
-		}
+                    if (callback && word && word != "") {
+                        callback(word);
+                    }
+                } else if (word === false && self.sendFalseWhenComplete && callback) {
+                    callback(word);
+                }
+            });
+        };
 		
 		/**
 		 * Sometimes it's convenient to receive the whole set of words cut and normalized by the
@@ -132,40 +132,43 @@ var fullproof = fullproof||{};
 		this.sendFalseWhenComplete = analyzer.sendFalseWhenComplete = true;
 		this.provideScore = true;
 		
-		this.parse = function(text, callback) {
-			var words = {};
-			var wordcount = 0;
-			var totalwc = 0;
-			var self = this;
-			analyzer.parse(text, function(word) {
-				if (word !== false) {
-					if (words[word] === undefined) {
-						words[word] = [];
-					}
-					words[word].push(wordcount);
-					totalwc += ++wordcount;
-				} else {
-					// Evaluate the score for each word
-					for (var w in words) {
-						var res = words[w];
-						var offsetcount = 1;
-						var occboost = 0;
-						for (var i=0;i<res.length; ++i) {
-							occboost += (3.1415 - Math.log(1+res[i]))/10;
-						}
-						var countboost = Math.abs(Math.log(1+res.length))/10;
-						var score = 1 + occboost*1.5 + countboost*3;
-						// console.log(w + ": " + words[w].join(",") + ", countboost: " + countboost + ", occboost: " + occboost);
-						callback(new fullproof.ScoredEntry(w, undefined, score));
-					}
-					
-					if (self.sendFalseWhenComplete == true) {
-						callback(false);
-					}
-					
-				}
-			});
-		}
+		this.parse = function (text, callback) {
+            var words = {};
+            var wordcount = 0;
+            var totalwc = 0;
+            var self = this;
+            analyzer.parse(text, function (word) {
+                if (word !== false) {
+                    if (words[word] === undefined || words[word].constructor !== Array) {
+                        words[word] = [];
+                    }
+                    if (!words[word].push) {
+                        console.log("eRROR");
+                    }
+                    words[word].push(wordcount);
+                    totalwc += ++wordcount;
+                } else {
+                    // Evaluate the score for each word
+                    for (var w in words) {
+                        var res = words[w];
+                        var offsetcount = 1;
+                        var occboost = 0;
+                        for (var i = 0; i < res.length; ++i) {
+                            occboost += (3.1415 - Math.log(1 + res[i])) / 10;
+                        }
+                        var countboost = Math.abs(Math.log(1 + res.length)) / 10;
+                        var score = 1 + occboost * 1.5 + countboost * 3;
+                        // console.log(w + ": " + words[w].join(",") + ", countboost: " + countboost + ", occboost: " + occboost);
+                        callback(new fullproof.ScoredEntry(w, undefined, score));
+                    }
+
+                    if (self.sendFalseWhenComplete == true) {
+                        callback(false);
+                    }
+
+                }
+            });
+        };
 		
 		/**
 		 * Sometimes it's convenient to receive the whole set of words cut and normalized by the

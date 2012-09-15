@@ -1,6 +1,6 @@
 var MameSearch = (function(){
 	
-	var engine = new fullproof.ScoringEngine();
+	var engine = new fullproof.ScoringEngine([new fullproof.StoreDescriptor("indexeddbstore", fullproof.store.IndexedDBStore), new fullproof.StoreDescriptor("memorystore", fullproof.store.MemoryStore) ]);
 	var data = [];
 	var dbName = "mamelist";
 	
@@ -14,31 +14,28 @@ var MameSearch = (function(){
 			injector.injectBulk(data, values, callback, progressCallback);
 		}
 	}
-	
-	this.start = function(callback, progress) {
-		
-		function makeProgressFunction(modifier, base) {
-			return function(val) {
-				progress(base + (val*modifier));
-			}
-		}
 
-		var loader = new fullproof.DataLoader();
+
+    /**
+     * Starts the MameSearch search engine
+     * @param callback called when the search engine is ready
+     * @param progress if the indexes need to be initialized, this function is called with the progress value, ranging from 0 to 1.
+     */
+    this.start = function(callback, progress) {
+
+        var loader = new fullproof.DataLoader();
 		loader.setQueue("mamegames.txt");
 		loader.start(function() {
-			
-			var index1 = {
-					name: "normalindex",
-					analyzer: new fullproof.ScoringAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.normalizer.remove_duplicate_letters), 
-					capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(true).setDbName(dbName).setComparatorObject(fullproof.ScoredEntry.comparatorObject),
-					initializer: makeInitializer(makeProgressFunction(0.5,0)) 	
-			};
-			var index2 = {
-					name: "stemmedindex",
-					analyzer: new fullproof.ScoringAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.english.porter_stemmer), 
-					capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(true).setDbName(dbName).setComparatorObject(fullproof.ScoredEntry.comparatorObject),
-					initializer: makeInitializer(makeProgressFunction(0.5,0.5)) 	
-			};
+
+            var index1 = new fullproof.IndexUnit("normalindex",
+                new fullproof.Capabilities().setStoreObjects(false).setUseScores(true).setDbName(dbName).setComparatorObject(fullproof.ScoredEntry.comparatorObject),
+                new fullproof.ScoringAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.normalizer.remove_duplicate_letters),
+                makeInitializer(function(val) { progress(val/2); }));
+
+            var index2 = new fullproof.IndexUnit("stemmedindex",
+                new fullproof.Capabilities().setStoreObjects(false).setUseScores(true).setDbName(dbName).setComparatorObject(fullproof.ScoredEntry.comparatorObject),
+                new fullproof.ScoringAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.english.metaphone),
+                makeInitializer(function(val){progress(val/2 + 0.5);}));
 
 			engine.addIndexes([index1, index2], function(res) {
 				engine.open(fullproof.make_callback_caller(callback, true), fullproof.make_callback_caller(callback, false));

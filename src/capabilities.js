@@ -29,120 +29,120 @@ fullproof.Capabilities = function() {
 /**
  * @protected
  */
-fullproof.Capabilities.prototype.matchValue = function(property, value) {
-	if (value === undefined) {
-		return true;
-	} else if (typeof property == "object" && property.constructor == Array) {
-		for (var i=0; i<property.length; ++i) {
-			if (property[i] === value) {
-				return true;
-			}
-		}
-		return false;
-	} else {
-		return property === value;
-	}
-}
+fullproof.Capabilities.prototype.matchValue = function (property, value) {
+    if (value === undefined) {
+        return true;
+    } else if (typeof property == "object" && property.constructor == Array) {
+        for (var i = 0; i < property.length; ++i) {
+            if (property[i] === value) {
+                return true;
+            }
+        }
+        return false;
+    } else {
+        return property === value;
+    }
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.setStoreObjects = function(val) {
-	this.canStoreObjects = val;
-	return this;
-}
+fullproof.Capabilities.prototype.setStoreObjects = function (val) {
+    this.canStoreObjects = val;
+    return this;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.getStoreObjects = function() {
-	return this.canStoreObjects;
-}
+fullproof.Capabilities.prototype.getStoreObjects = function () {
+    return this.canStoreObjects;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.setVolatile = function(val) {
-	this.isVolatile = val;
-	return this;
-}
+fullproof.Capabilities.prototype.setVolatile = function (val) {
+    this.isVolatile = val;
+    return this;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.setAvailable = function(val) {
-	this.isAvailable = !!val;
-	return this;
-}
+fullproof.Capabilities.prototype.setAvailable = function (val) {
+    this.isAvailable = !!val;
+    return this;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.setUseScores= function(val) {
-	this.useScores = val;
-	return this;
-}
+fullproof.Capabilities.prototype.setUseScores = function (val) {
+    this.useScores = val;
+    return this;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.getUseScores= function() {
-	return this.useScores;
-}
+fullproof.Capabilities.prototype.getUseScores = function () {
+    return this.useScores;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.setComparatorObject= function(obj) {
-	this.comparatorObject = obj;
-	return this;
-}
+fullproof.Capabilities.prototype.setComparatorObject = function (obj) {
+    this.comparatorObject = obj;
+    return this;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.getComparatorObject= function(obj) {
-	return this.comparatorObject;
-}
+fullproof.Capabilities.prototype.getComparatorObject = function (obj) {
+    return this.comparatorObject;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.setDbName= function(name) {
-	this.dbName = name;
-	return this;
-}
+fullproof.Capabilities.prototype.setDbName = function (name) {
+    this.dbName = name;
+    return this;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.getDbName= function() {
-	return this.dbName;
-}
+fullproof.Capabilities.prototype.getDbName = function () {
+    return this.dbName;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.setDbSize= function(size) {
-	this.dbSize = size;
-	return this;
-}
+fullproof.Capabilities.prototype.setDbSize = function (size) {
+    this.dbSize = size;
+    return this;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.getDbSize= function() {
-	return this.dbSize;
-}
+fullproof.Capabilities.prototype.getDbSize = function () {
+    return this.dbSize;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.setScoreModifier = function(modifier) {
-	this.scoreModifier = modifier;
-	return this;
-}
+fullproof.Capabilities.prototype.setScoreModifier = function (modifier) {
+    this.scoreModifier = modifier;
+    return this;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.getScoreModifier = function() {
-	return this.scoreModifier;
-}
+fullproof.Capabilities.prototype.getScoreModifier = function () {
+    return this.scoreModifier;
+};
 /**
- * 
+ *
  */
-fullproof.Capabilities.prototype.isCompatibleWith= function(otherCapabilities) {
-	var objstore = this.matchValue(this.canStoreObjects, otherCapabilities.canStoreObjects);
-	var isvol = this.matchValue(this.isVolatile, otherCapabilities.isVolatile);
-	var score = this.matchValue(this.useScores, otherCapabilities.useScores);
-	var isavail = this.isAvailable===true;
-	
-	return objstore && isvol && isavail && score;
-}
+fullproof.Capabilities.prototype.isCompatibleWith = function (otherCapabilities) {
+    var objstore = this.matchValue(this.canStoreObjects, otherCapabilities.canStoreObjects);
+    var isvol = this.matchValue(this.isVolatile, otherCapabilities.isVolatile);
+    var score = this.matchValue(this.useScores, otherCapabilities.useScores);
+    var isavail = this.isAvailable === true;
+
+    return objstore && isvol && isavail && score;
+};

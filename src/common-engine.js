@@ -93,52 +93,63 @@ fullproof.TextInjector.prototype.injectBulk = function(textArray, valueArray, ca
 
 /**
  * Represent all the data associated to an index, from the point of view of a search engine.
+ * @param name the name of the index, expected to be unique in the search engine
+ * @param capabilities a fullproof.Capabilities
+ * @param analyzer
+ * @param initializer
+ * @param index
+ * @constructor
  */
-fullproof.IndexUnit = function(name,capabilities,analyzer,index) {
-	/**
-	 * The name of the index
-	 */
-	this.name=name;
-	/**
-	 * The fullproof.Capabilities object originally associated to the index
-	 */
-	this.capabilities = capabilities;
-	/**
-	 * The parser used to inject text in the index
-	 */
-	this.analyzer=analyzer;
-	/**
-	 * The index itself
-	 */
-	this.index=index;
-}
+fullproof.IndexUnit = function (name, capabilities, analyzer, initializer, index) {
+    /**
+     * The name of the index
+     */
+    this.name = name;
+    /**
+     * The fullproof.Capabilities object originally associated to the index
+     */
+    this.capabilities = capabilities;
+    /**
+     * The parser used to inject text in the index
+     */
+    this.analyzer = analyzer;
+    /**
+     * The initializer function when the index needs to be built
+     * @type {*}
+     */
+    this.initializer = initializer;
+    /**
+     * The index itself
+     */
+    this.index = index;
+};
 
 fullproof.AbstractEngine = fullproof.AbstractEngine || (function() {});
 
-fullproof.AbstractEngine.prototype.checkCapabilities = function(capabilities, analyzer) {
-	return true;
-}
+fullproof.AbstractEngine.prototype.checkCapabilities = function (capabilities, analyzer) {
+    return true;
+};
 
 /**
  * Adds an array of index units
  * @param indexes an array of fullproof.IndexUnit instances
  * @param callback the function to call when all the indexes are added
  */
-fullproof.AbstractEngine.prototype.addIndexes =  function(indexes, callback) {
-	var starter = false;
-	var engine = this;
-	while (indexes.length > 0) {
-		var data = indexes.pop();
-		starter = (function(next, data) {
-			return function() {
-				engine.addIndex(data.name, data.analyzer, data.capabilities, data.initializer, next!==false?next:callback);
-			};
-		})(starter, data);
-	}
-	if (starter !== false) {
-		starter();
-	}
-}
+fullproof.AbstractEngine.prototype.addIndexes = function (indexes, callback) {
+    var starter = false;
+    var engine = this;
+    while (indexes.length > 0) {
+        var data = indexes.pop();
+        starter = (function (next, data) {
+            return function () {
+                engine.addIndex(data.name, data.analyzer, data.capabilities, data.initializer, next !== false ? next : callback);
+            };
+        })(starter, data);
+    }
+    if (starter !== false) {
+        starter();
+    }
+};
 
 /**
  * Adds un index to the engine
@@ -178,7 +189,6 @@ fullproof.AbstractEngine.prototype.addIndex = function(name, analyzer, capabilit
 		}
 		return false;
 	}
-	return this;
 };
 
 /**
@@ -188,16 +198,16 @@ fullproof.AbstractEngine.prototype.addIndex = function(name, analyzer, capabilit
  *  @param callback function called when the engine is properly opened
  *  @param errorCallback function called if for some reason the engine cannot open some index
  */
-fullproof.AbstractEngine.prototype.open = function(callback, errorCallback) {
-	var self = this;
-	this.storeManager.openIndexes(function(storesArray) {
-		self.storeManager.forEach(function(name, index) {
-			self.indexesByName[name].index = index;
-		});
-		callback(self);
-	}, errorCallback);
-	return this;
-}
+fullproof.AbstractEngine.prototype.open = function (callback, errorCallback) {
+    var self = this;
+    this.storeManager.openIndexes(function (storesArray) {
+        self.storeManager.forEach(function (name, index) {
+            self.indexesByName[name].index = index;
+        });
+        callback(self);
+    }, errorCallback);
+    return this;
+};
 
 /**
  * Inject a text document into all the indexes managed by the engine.
@@ -243,48 +253,47 @@ fullproof.AbstractEngine.prototype.clear = function(callback) {
 /**
  * Inits the current engine with data used by the AbstractEngine object.
  */
-fullproof.AbstractEngine.prototype.initAbstractEngine = function() {
-	this.storeManager = new fullproof.StoreManager();
-	this.indexes = [];
-	this.indexesByName =  {};
-	return this;
-}
+fullproof.AbstractEngine.prototype.initAbstractEngine = function (storeDescriptors) {
+    this.storeManager = new fullproof.StoreManager(storeDescriptors);
+    this.indexes = [];
+    this.indexesByName = {};
+    return this;
+};
 
 /**
  * Returns an index by its name
  * @param name the index name
- * @return a store index 
+ * @return a store index
  */
-fullproof.AbstractEngine.prototype.getIndex = function(name) {
-	return this.indexesByName[name].index;
-}
+fullproof.AbstractEngine.prototype.getIndex = function (name) {
+    return this.indexesByName[name].index;
+};
 
 /**
- * Returns an array with all the fullproof.IndexUnit managed by the engine, 
+ * Returns an array with all the fullproof.IndexUnit managed by the engine,
  * in the same order they were added.
  * @return an array, possibly empty, of fullproof.IndexUnit objects.
  */
-fullproof.AbstractEngine.prototype.getIndexUnits = function() {
-	return [].concat(this.indexes);
-}
+fullproof.AbstractEngine.prototype.getIndexUnits = function () {
+    return [].concat(this.indexes);
+};
 
 /**
  * Iterates over the indexes, in order, and calls the callback function with 3 parameters:
  * the name of the index, the index instance itself, and the analyzer associated to this index.
  * @param callback the callback function(name,index,analyzer){}
- * @return this engine instance 
+ * @return this engine instance
  */
-fullproof.AbstractEngine.prototype.forEach = function(callback) {
-	for (var i=0,max=this.indexes.length; i<max; ++i) {
-		callback(this.indexes[i].name, this.indexes[i].index, this.indexes[i].analyzer);
-	}
-	for (var i=1; i<arguments.length; ++i) {
-		callback(arguments[i]);
-	}
-	return this;
-}
+fullproof.AbstractEngine.prototype.forEach = function (callback) {
+    for (var i = 0, max = this.indexes.length; i < max; ++i) {
+        callback(this.indexes[i].name, this.indexes[i].index, this.indexes[i].analyzer);
+    }
+    for (var i = 1; i < arguments.length; ++i) {
+        callback(arguments[i]);
+    }
+    return this;
+};
 
-fullproof.AbstractEngine.prototype.getIndexCount = function() {
-	return this.indexes.length;
-}
-
+fullproof.AbstractEngine.prototype.getIndexCount = function () {
+    return this.indexes.length;
+};

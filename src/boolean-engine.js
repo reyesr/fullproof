@@ -18,75 +18,75 @@ var fullproof = fullproof||{};
 
 /**
  * A boolean-set based engine.
- *  
+ *
  * @constructor
  */
-fullproof.BooleanEngine = function() {
+fullproof.BooleanEngine = function (storeDescriptors) {
 
-	if (!(this instanceof fullproof.BooleanEngine)) {
-		return new fullproof.BooleanEngine();
-	}
-	
-	this.initAbstractEngine(); // Init from the prototype
-	
-	/**
-	 * The working mode when gathering result sets.
-	 */
-	this.booleanMode = fullproof.BooleanEngine.CONST_MODE_INTERSECT;
-	
-	function lookup(text, callback, arrayOfIndexUnits, mode) {
-		if (arrayOfIndexUnits.length == 0) {
-			return callback(false);
-		}
-		var unit = arrayOfIndexUnits.shift();
-		unit.analyzer.parse(text, fullproof.make_synchro_point(function(array_of_words) {
-			
-			if (!array_of_words || array_of_words.length == 0) {
-				if (arrayOfIndexUnits.length>0) {
-					return lookup(text, callback, arrayOfIndexUnits, mode);
-				} else {
-					return callback(false);
-				}
-			}
-			
-			var lookup_synchro = fullproof.make_synchro_point(function(rset_array) {
-				
-				var curset = rset_array.shift();
-				while (rset_array.length > 0) {
-					var set = rset_array.shift();
-					switch(mode) {
-					case fullproof.BooleanEngine.CONST_MODE_UNION:
-						curset.merge(set);
-						break;
-					default: // default is intersect
-						curset.intersect(set);
-						break;
-					}
-				}
-				
-				if (curset.getSize() ==0) {
-					if (arrayOfIndexUnits.length>0) {
-						return lookup(text, callback, arrayOfIndexUnits, mode);
-					} else {
-						callback(false);
-					}
-				} else {
-					callback(curset);
-				}
-				
-			}, array_of_words.length);
+    if (!(this instanceof fullproof.BooleanEngine)) {
+        return new fullproof.BooleanEngine(storeDescriptors);
+    }
 
-			for (var i=0; i<array_of_words.length; ++i) {
-				unit.index.lookup(array_of_words[i], lookup_synchro);
-			}
-		}));
-	}
-	
-	this.lookup = function(text,callback) {
-		lookup(text,callback, this.getIndexUnits(), this.booleanMode);
-		return this;
-	}
-}
+    this.initAbstractEngine(storeDescriptors); // Init from the prototype
+
+    /**
+     * The working mode when gathering result sets.
+     */
+    this.booleanMode = fullproof.BooleanEngine.CONST_MODE_INTERSECT;
+
+    function lookup(text, callback, arrayOfIndexUnits, mode) {
+        if (arrayOfIndexUnits.length == 0) {
+            return callback(false);
+        }
+        var unit = arrayOfIndexUnits.shift();
+        unit.analyzer.parse(text, fullproof.make_synchro_point(function (array_of_words) {
+
+            if (!array_of_words || array_of_words.length == 0) {
+                if (arrayOfIndexUnits.length > 0) {
+                    return lookup(text, callback, arrayOfIndexUnits, mode);
+                } else {
+                    return callback(false);
+                }
+            }
+
+            var lookup_synchro = fullproof.make_synchro_point(function (rset_array) {
+
+                var curset = rset_array.shift();
+                while (rset_array.length > 0) {
+                    var set = rset_array.shift();
+                    switch (mode) {
+                        case fullproof.BooleanEngine.CONST_MODE_UNION:
+                            curset.merge(set);
+                            break;
+                        default: // default is intersect
+                            curset.intersect(set);
+                            break;
+                    }
+                }
+
+                if (curset.getSize() == 0) {
+                    if (arrayOfIndexUnits.length > 0) {
+                        return lookup(text, callback, arrayOfIndexUnits, mode);
+                    } else {
+                        callback(false);
+                    }
+                } else {
+                    callback(curset);
+                }
+
+            }, array_of_words.length);
+
+            for (var i = 0; i < array_of_words.length; ++i) {
+                unit.index.lookup(array_of_words[i], lookup_synchro);
+            }
+        }));
+    }
+
+    this.lookup = function (text, callback) {
+        lookup(text, callback, this.getIndexUnits(), this.booleanMode);
+        return this;
+    }
+};
 
 fullproof.AbstractEngine = fullproof.AbstractEngine || (function() {});
 fullproof.BooleanEngine.prototype = new fullproof.AbstractEngine;
