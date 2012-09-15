@@ -45,7 +45,7 @@ var Animals = (function(){
 			};
 			var index2 = {
 					name: "stemmedindex",
-					analyzer: new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.english.porter_stemmer), 
+					analyzer: new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.english.metaphone), 
 					capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName),
 					initializer: makeInitializer(makeProgressFunction(0.5,0.5)) 	
 			};
