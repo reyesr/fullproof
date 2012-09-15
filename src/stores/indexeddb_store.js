@@ -129,22 +129,23 @@ fullproof.store = fullproof.store||{};
 		}, fullproof.make_callback_caller(callback,false));
 	};
 
-    var storedObjectComparator = {
+    var storedObjectComparator_score = {
         lower_than: function(a,b) {
-            return a.v<b.v;
+            return (a.v?a.v:a)<(b.v? b.v:b);
         },
         equals: function(a,b) {
-            return a.v== b.v;
+            return (a.v?a.v:a)==(b.v? b.v:b);
         }
     };
 
-	function createMapOfWordsToResultSet(self, wordArray, valuesArray, offset, count, resultPropertiesAsArray) {
+    function createMapOfWordsToResultSet(self, wordArray, valuesArray, offset, count, resultPropertiesAsArray) {
 		var result = new fullproof.HMap();
 		for (; offset < count; ++offset) {
 			var word = wordArray[offset];
 			var value = valuesArray[offset];
+
 			if (result.get(word) === undefined) {
-				result.put(word, new fullproof.ResultSet(storedObjectComparator));
+				result.put(word, new fullproof.ResultSet(storedObjectComparator_score));
                 resultPropertiesAsArray.push(word);
             }
 			if (value instanceof fullproof.ScoredElement) {
@@ -169,9 +170,6 @@ fullproof.store = fullproof.store||{};
 				var rs = new fullproof.ResultSet(self.comparatorObject).setDataUnsafe(obj.v);
 				rs.merge(value);
 				obj.v = rs.getDataUnsafe();
-                if (obj.v.length > 1) {
-                    console.log("MORE THAN 1");
-                }
 				setObject(store, obj, function() {
 					storeMapOfWords(self, store, words, data, callback, offset+1, max);
 				}, function() { callback(false); });

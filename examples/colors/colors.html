@@ -126,7 +126,7 @@ function engineReady(b) {
 
 $(document).ready(function() {
     var dbName = "colors";
-    var colorSearchEngine = new fullproof.BooleanEngine([new fullproof.StoreDescriptor("memorystore", fullproof.store.MemoryStore)]);
+    var colorSearchEngine = new fullproof.BooleanEngine();
 
     // Loads the color data from the csv, then creates the index descriptors and uses them to open the indexes
     loadData(function() {
@@ -154,7 +154,13 @@ $(document).ready(function() {
      */
 	function search() {
 		var value = $("#typehere").val();
-		
+
+        if (value == "reload") {
+            colorSearchEngine.clear(function() {
+                window.location.reload(true);
+            });
+        }
+
         // Request a search to the colorSearchEengine, then displays the results, if any.
 		colorSearchEngine.lookup(value, function(resultset) {
             var result ="";

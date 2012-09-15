@@ -44,8 +44,6 @@ fullproof.BooleanEngine = function (storeDescriptors) {
         ++(self.lastResultIndex);
         unit.analyzer.parse(text, fullproof.make_synchro_point(function (array_of_words) {
 
-
-
             if (!array_of_words || array_of_words.length == 0) {
                 if (arrayOfIndexUnits.length > 0) {
                     return lookup(self, text, callback, arrayOfIndexUnits, mode);

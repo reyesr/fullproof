@@ -83,7 +83,9 @@ var Animals = (function(){
 	};
 	
 	this.reloadDatabase = function(callback) {
-		engine.clear(callback);
+		engine.clear(function() {
+            window.location.reload(true);
+        });
 	};
 	
 	
