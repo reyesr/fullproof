@@ -1,6 +1,6 @@
 var MameSearch = (function(){
 	
-	var engine = new fullproof.ScoringEngine([new fullproof.StoreDescriptor("indexeddbstore", fullproof.store.IndexedDBStore), new fullproof.StoreDescriptor("memorystore", fullproof.store.MemoryStore) ]);
+	var engine = new fullproof.ScoringEngine();
 	var data = [];
 	var dbName = "mamelist";
 	
