@@ -38,9 +38,9 @@ fullproof.StoreManager = function(storeDescriptors) {
 	this.available = [];
 
 	if (fullproof.store) {
-		storeDescriptors = storeDescriptors || [ new fullproof.StoreDescriptor("indexeddbstore", fullproof.store.IndexedDBStore),
-		                                         new fullproof.StoreDescriptor("websqlstore", fullproof.store.WebSQLStore),
-		                             new fullproof.StoreDescriptor("memorystore", fullproof.store.MemoryStore) ];
+		storeDescriptors = storeDescriptors || [ new fullproof.StoreDescriptor("websqlstore", fullproof.store.WebSQLStore),
+            new fullproof.StoreDescriptor("indexeddbstore", fullproof.store.IndexedDBStore),
+            new fullproof.StoreDescriptor("memorystore", fullproof.store.MemoryStore) ];
 	}
     if (storeDescriptors && storeDescriptors.length) {
         for (var i=0;i<storeDescriptors.length; ++i) {
@@ -98,6 +98,7 @@ fullproof.StoreManager = function(storeDescriptors) {
 		if (this.storeCount === 0) {
 			return callback();
 		}
+        errorCallback = errorCallback || function(){};
 		var synchro = fullproof.make_synchro_point(callback, this.storeCount);
 		
 		for (var k in this.indexesByStore) {

@@ -56,8 +56,9 @@ fullproof.store = fullproof.store||{};
 		try {
 			var req = store.get(keyValue);
 		} catch (e) {
-			console.log(e);
+			console && console.log && console.log(e);
 		}
+
 		req.onsuccess = function(ev) {
 			if (ev.target.result === undefined) {
 				if (defaultValue !== undefined) {
@@ -310,7 +311,7 @@ fullproof.store = fullproof.store||{};
 			var tx = database.transaction([self.metaStoreName], fullproof.store.READWRITEMODE);
 			var metastore = tx.objectStore(self.metaStoreName);
 			var ireq = indexRequestArray.shift();
-			getOrCreateObject(metastore, ireq.name, {id: ireq.name, init: false}, 
+            getOrCreateObject(metastore, ireq.name, {id: ireq.name, init: false},
 					function(obj) {
 						if (obj.init == false && ireq.initializer) {
 							var initIndex = self.getIndex(ireq.name);
@@ -336,7 +337,8 @@ fullproof.store = fullproof.store||{};
 		function checkInit(self, database, indexRequestArray, callback, errorCallback) {
 			createStores(database, indexRequestArray, self.metaStoreName);
 			setupIndexes(self);
-			callInitializerIfNeeded(database, self, [].concat(indexRequestArray), callback, errorCallback);
+			// callInitializerIfNeeded(database, self, [].concat(indexRequestArray), callback, errorCallback);
+            fullproof.call_new_thread(callInitializerIfNeeded, database, self, [].concat(indexRequestArray), callback, errorCallback);
 		}
 		
 		this.indexRequests = reqIndexArray;
