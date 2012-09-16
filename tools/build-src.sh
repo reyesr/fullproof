@@ -12,8 +12,7 @@
 #
 ROOT=`dirname "$0"`/..
 ROOT=`readlink -e "$ROOT"`
-
-BUILD="$ROOT"/build
+BUILD="$ROOT"/build/js
 
 BASE="$ROOT/src/*.js  $ROOT/src/stores/*.js $ROOT/src/misc/*.js"
 UNICODE="$ROOT/src/unicode/categ_letters_numbers.js $ROOT/src/unicode/normalizer_lowercase_nomark.js $ROOT/src/unicode/unicode.js"
@@ -30,13 +29,17 @@ build_version_offline ()
 	TARGET="$1"
 	shift
 
+    echo >/tmp/all.js
 	local JSOPT=
 	while (( "$#" )); do
 		JSOPT="$JSOPT --js $1"
+		cat <"$1" >>/tmp/all.js
 		shift
 	done
 	echo Building version $TARGET
 	java -jar "$CLOSURE_COMPILER_JAR" $JSOPT --compilation_level SIMPLE_OPTIMIZATIONS --js_output_file $TARGET
+	## java -jar "$CLOSURE_COMPILER_JAR" $JSOPT --compilation_level WHITESPACE_ONLY --js_output_file $TARGET
+	## cp /tmp/all.js "$TARGET"
 }
 
 build_version_online () 
