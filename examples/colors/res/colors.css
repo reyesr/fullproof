@@ -27,6 +27,19 @@ body {
     margin: 0;
 }
 
+#results table td {
+    font-size: 1.25em;
+    font-weight: bold;
+    padding-left: 16px;
+}
+
+#results table th {
+    font-size: 1.0em;
+    font-weight: normal;
+    min-width: 100px;
+    padding-left: 16px;
+}
+
 .formbg {
     background: #adadad; padding: 16px;
     background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ededed), color-stop(1, #afafaf) );

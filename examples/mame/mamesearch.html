@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <title>MAME Roms example</title>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="css/simplecssgrid-960.css" />
+<link rel="stylesheet" type="text/css" href="css/mamesearch.css" />
 
+    <!-- START DEV SCRIPTS -->
 <script type="text/javascript" src="../../src/unicode/categ_letters_numbers.js"></script>
 <script type="text/javascript" src="../../src/unicode/normalizer_lowercase_nomark.js"></script>
 <script type="text/javascript" src="../../src/unicode/unicode.js"></script>
@@ -21,52 +24,39 @@
 <script type="text/javascript" src="../../src/resultsets.js"></script>
 <script type="text/javascript" src="../../src/storemanager.js"></script>
 <script type="text/javascript" src="../../src/stores/memory_store.js"></script>
-    <script type="text/javascript" src="../../src/stores/websql_store.js"></script>
-    <script type="text/javascript" src="../../src/stores/indexeddb_store.js"></script>
+<script type="text/javascript" src="../../src/stores/websql_store.js"></script>
+<script type="text/javascript" src="../../src/stores/indexeddb_store.js"></script>
+<!-- END DEV SCRIPTS -->
 
-    <script type="text/javascript" src="mamesearch.js"></script>
+<script type="text/javascript" src="mamesearch.js"></script>
 
-<style TYPE="text/css">
-
-div.floatbox {
-	float:left; width: 300px;
-}
-div.resultbox {
-	border: 1px solid black; margin:0.5em;
-	color: black; background-color: #EEEEEE;
-	overflow: hidden;
-}
-textarea.typebox {
-	float: left;
-	width: 300px; height: 200px; margin:1em;"
-	color: black; background-color: white;
-}
-</style>
 </head>
 <body>
-<h1>Search the MAME ROMs</h1>
+<div class="grid">
+    <img src="img/logo.png">
+</div>
+<div class="grid">
+    <div>
+        This sample application provides an example of fulltext search in the database of ROMs supported by
+        <a href="http://mamedev.org/">the MAME emulator</a>.
+        <p/>
+        It uses the ScoringEngine to search for results in the inverted indexes, and sorts them according to their score.
+    </div>
 
-<div>
-This sampple application provides an example of fulltext search in the database of ROMs supported by
-<a href="http://mamedev.org/">the MAME emulator</a>. 
-</div>
-<div>
-It uses the ScoringEngine to search for results in the inverted indexes, and sorts them according to a score
-evaluated according to the scoring rules defined in the engine.
-</div>
-
-<div style="display: none;" id="application">
-	Search a game:
-	<div>
-		<input type="text" id="typehere" class="typebox">
-		<button id="search">Search</button>
-		<button id="reload">Reload database</button>
-	</div>
-	<div style="clear:both" id="results">
-	</div>
-</div>
-<div id="loading">
-Application is loading: <span id="progress"></span>%
+    <div style="display: none;" id="application">
+        Search a game:
+        <div>
+            <input type="text" id="typehere" class="typebox">
+            <button id="search">Search ROMS</button>
+            <button id="reload">Reload DB</button>
+        </div>
+        <div style="clear:both" id="results">
+        </div>
+    </div>
+    <div id="loading">
+        Loading the data into the indexes: <span id="progress"></span>%
+        <p/>This operation is only done once.
+    </div>
 </div>
 <script type="text/javascript">
 
