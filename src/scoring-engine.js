@@ -31,7 +31,7 @@ fullproof.ScoringEngine = function (storeDescriptors) {
 };
 
 fullproof.AbstractEngine = fullproof.AbstractEngine || (function() {});
-fullproof.ScoringEngine.prototype = new fullproof.AbstractEngine;
+fullproof.ScoringEngine.prototype = new fullproof.AbstractEngine();
 
 fullproof.ScoringEngine.prototype.checkCapabilities = function (capabilities, analyzer) {
     if (capabilities.getUseScores() !== true) {

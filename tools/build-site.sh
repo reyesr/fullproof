@@ -20,8 +20,8 @@ do
     [ $RETVAL != 0 ] && echo ERROR processing file "$file" to $TARGET
 done
 
-echo cp -r "$SITEROOT"/img "$TARGET"/
 cp -r "$SITEROOT"/img "$TARGET"/
+cp -r "$SITEROOT"/css "$TARGET"/
 
 mkdir -p "$ROOT"/build/site/js
 cp "$ROOT"/build/js/*.js "$ROOT"/build/site/js/

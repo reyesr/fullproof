@@ -119,13 +119,13 @@ the index need to be populated, typically at creation time).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The analyzer is an important part of the search engine, as it impacts greatly the quality of the results. Notice how
-each analyzer is specified an array of normalizers: those are small functions that turn a word (a linguistic token cut
+each analyzer specifies an array of normalizers: those are small functions that turn a word (a linguistic token cut
 by the parser from the text) into a simplified ("normalized") form of the same word. For instance, the `to_lowercase_nomark`
 function takes a word, converts it to lowercase and remove all diacritical mark. MARIO becomes mario, but MÄRÎÔ is also
 converted to mario. This may not seem very useful for english, but it defintely is whenever you're indexing any
 language that use diacritical marks (and most languages in the world use them).
 
-As a side note, another interesting feature of this `to_lowercase_nomark` is that unicode allows two forms for a single word
+As a side note, another interesting feature of this `to_lowercase_nomark` is that unicode allows two forms for a single letter
 with a diacritical mark: one where the letter and its mark are combined, and another where they are not (they usually appear
 as distinct LETTER + MARK in the string. Adds to that that letters can also have more than one diacritical mark, and that
 the marks may appear in different orders, and you can see why this is a useful feature: it makes all those forms
@@ -147,6 +147,10 @@ analyzer associated to the index that you feed with text and documents keys.
     }
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+You certainly remember how most functions are asynchronous. `inject()` is no different, and its third argument is a function
+that is called when the injection is done. In order to call the main callback function (argument of `initializer`) when all the
+injections are done, we use a utility function `fullproof.make_synchro_point` that calls its first argument when the specified
+amount of calls are received.
 
 # Starting it up
 

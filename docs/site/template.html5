@@ -3,6 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="generator" content="pandoc">
+    <link rel="stylesheet" type="text/css" href="css/simplecssgrid-720.css" />
+    <link rel="stylesheet" type="text/css" href="css/default.css" />
     $for(author-meta)$
     <meta name="author" content="$author-meta$">
     $endfor$
@@ -39,27 +41,39 @@ $include-before$
 $endfor$
 $if(title)$
 <header>
-    <h1 class="title">$title$</h1>
-    $for(author)$
-    <h2 class="author">$author$</h2>
-    $endfor$
-    $if(date)$
-    <h3 class="date">$date$</h3>
-    $endif$
+    <div class="grid">
+        <h1 class="title">$title$</h1>
+        $for(author)$
+        <h2 class="author">$author$</h2>
+        $endfor$
+        $if(date)$
+        <h3 class="date">$date$</h3>
+        $endif$
+    </div>
 </header>
 $endif$
 $if(toc)$
-<nav id="$idprefix$TOC">
-    $toc$
-</nav>
+<div class="grid">
+    <nav id="$idprefix$TOC">
+        $toc$
+    </nav>
+</div>
 $endif$
 <div id="header">
-    <h1>Fullproof</h1>
-    <h2>a javascript search engine for the browser</h2>
+    <div class="grid">
+        <h1>Fullproof</h1>
+        <div style="float: right;">
+            <a href="index.html"><img src="img/home.png"></a>
+            <a href="https://github.com/reyesr/fullproof"><img src="img/blacktocat.png"></a>
+        </div>
+        <h2>a javascript search engine library for the browser</h2>
+    </div>
 </div>
+<div class="grid content">
 $body$
 $for(include-after)$
 $include-after$
 $endfor$
+</div>
 </body>
 </html>

@@ -17,6 +17,10 @@ var fullproof = fullproof||{};
 (function() {
 "use strict";
 
+    /**
+     * A prototype for Analyzers objects.
+     * @constructor
+     */
     fullproof.AbstractAnalyzer = function() {
         /**
          * Sometimes it's convenient to receive the whole set of words cut and normalized by the
@@ -32,7 +36,7 @@ var fullproof = fullproof||{};
             this.parse(text, parser_synchro);
         };
 
-    }
+    };
 
 	/**
 	 * A simple private parser that relies on the unicode letter/number

@@ -7,7 +7,7 @@ BUILD="$ROOT"/build
 rm -fr "$BUILD"
 mkdir -p "$BUILD"
 
-#./build-src.sh
+./build-src.sh
 ./build-site.sh
 
 shopt -s globstar

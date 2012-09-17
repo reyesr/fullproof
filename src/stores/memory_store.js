@@ -24,7 +24,7 @@ fullproof.store = fullproof.store||{};
 		this.data= {};
 		this.comparatorObject = null;
 		this.useScore= false;
-	};
+	}
 	
 	fullproof.store.MemoryStore = function() {
 		
@@ -42,12 +42,13 @@ fullproof.store = fullproof.store||{};
 	fullproof.store.MemoryStore.storeName = "MemoryStore";
 
 	function openStore(parameters, callback) {
+        parameters=parameters;
 		// ignore parameters
 		if (callback) {
 			callback(this);
 		}
-	};
-	
+	}
+
 	function openIndex(store, name, parameters, initializer, callback) {
 		var index = new MemoryStoreIndex();
 		var useScore = parameters.getUseScores()!==undefined?(parameters.getUseScores()):false;
@@ -63,11 +64,11 @@ fullproof.store = fullproof.store||{};
 			callback(index);
 		}
 		return index;
-	};
+	}
 
 	fullproof.store.MemoryStore.prototype.open = function(caps, reqIndexArray, callback, errorCallback) {
 		var self = this;
-		openStore(caps, function(store) {
+		openStore(caps, function() {
 			var synchro = fullproof.make_synchro_point(function(result) {
 				callback(result);
 			}, reqIndexArray.length);

@@ -1,5 +1,5 @@
 var fullproof = (function(NAMESPACE) {
-
+    "use strict";
 	NAMESPACE.normalizer = NAMESPACE.normalizer||{};
 
 	//

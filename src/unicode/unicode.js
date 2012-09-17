@@ -3,7 +3,7 @@ net.kornr = net.kornr||{};
 net.kornr.unicode= net.kornr.unicode||{}; 
 
 (function(NAMESPACE) {
-
+    "use strict";
 	var CONST_GO_LEFT = -1;
 	var CONST_GO_RIGHT = -2;
 
