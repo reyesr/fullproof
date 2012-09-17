@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Fullproof example: Animals species database</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+
+<script type='text/javascript' src='../../js/fullproof-all.js'></script>
+    <script type="text/javascript" src="animals.js"></script>
+
+<style TYPE="text/css">
+
+div.floatbox {
+	float:left; width: 300px;
+}
+div.resultbox {
+	border: 1px solid black; margin:0.5em;
+	color: black; background-color: #EEEEEE;
+	overflow: hidden;
+}
+textarea.typebox {
+	float: left;
+	width: 300px; height: 200px; margin:1em;"
+	color: black; background-color: white;
+}
+</style>
+</head>
+<body>
+<h1>Animal Database</h1>
+
+<div>
+This application provides an example of fulltext search in the species database from
+the <a href="http://gapanalysis.usgs.gov/data/species-data/">U.S. Geological Survey Gap Analysis Program</a>
+</div>
+<div style="margin-top: 1em;">
+It uses a BooleanEngine, which only displays documents (here animals) that match all the searched terms. 
+It works by creating sets of results for each terms, and intersecting all the results. The BooleanEngine is
+fine when your users only want the documents that exactly match their terms. If you need to display
+results that contain any of the words typed by the user, it's better to use the ScoringEngine, which
+provides scores and result sorting.
+</div>
+
+<div style="display: none; margin-top: 1em" id="application">
+	Type an animal name here:
+	<div>
+		<input type="text" id="typehere" class="typebox">
+		<button id="search">Search</button>
+		<button id="reload">Reload database</button>
+	</div>
+	<div style="clear:both" id="results">
+	</div>
+</div>
+<div id="loading" style="margin: 1em; display: none;">
+<div>The first time the application is displayed, fullproof initializes its search indexes. This is done only once,
+subsequent loading will use the index locally stored.</div>
+<div>Note that this can be done in the background while the application works normally for the user.</div>
+<div>Application is loading: <span id="progress"></span>%</div>
+</div>
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	Animals.start(function(i) {
+		if (i) {
+			$("#loading").hide();
+			$("#application").show();
+		}
+	}, function(progress) {
+		$("#loading").show();
+		$("#progress").html(parseInt(progress*100));
+	});
+
+	var now = (function() {
+		var perf = window.performance || {};
+		var fn = perf.now || perf.mozNow || perf.webkitNow || perf.msNow || perf.oNow;
+		// fn.bind will be available in all the browsers that support the advanced window.performance... ;-)
+		return fn ? fn.bind(perf) : function() { return new Date().getTime(); };
+		})();
+
+	function search() {
+		var value = $("#typehere").val();
+		
+		var startTime = now();
+		
+		Animals.lookup(value, function(result) {
+			var time = now() - startTime;
+			time = time.toFixed(3);
+			result = "<div>Request processed in " + time + " ms</div>" + result;
+			$("#results").html(result);
+		});
+	}
+
+	$("#search").click(search);
+	$("#typehere").change(search);
+	$("#reload").click(function() {
+		Animals.reloadDatabase(function() {
+				window.location.reload(true);
+			console.log("RELOAD!");
+		});	
+	});
+	
+});</script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>MAME Roms example</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="css/simplecssgrid-960.css" />
+<link rel="stylesheet" type="text/css" href="css/mamesearch.css" />
+
+<script type='text/javascript' src='../../js/fullproof-all.js'></script>
+<script type="text/javascript" src="mamesearch.js"></script>
+
+</head>
+<body>
+<div class="grid">
+    <img src="img/logo.png">
+</div>
+<div class="grid">
+    <div>
+        This sample application provides an example of fulltext search in the database of ROMs supported by
+        <a href="http://mamedev.org/">the MAME emulator</a>.
+        <p/>
+        It uses the ScoringEngine to search for results in the inverted indexes, and sorts them according to their score.
+    </div>
+
+    <div style="display: none;" id="application">
+        Search a game:
+        <div>
+            <input type="text" id="typehere" class="typebox">
+            <button id="search">Search ROMS</button>
+            <button id="reload">Reload DB</button>
+        </div>
+        <div style="clear:both" id="results">
+        </div>
+    </div>
+    <div id="loading">
+        Loading the data into the indexes: <span id="progress"></span>%
+        <p/>This operation is only done once.
+    </div>
+</div>
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	MameSearch.start(function(i) {
+		if (i) {
+			$("#loading").hide();
+			$("#application").show();
+		}
+	}, function(progress) {
+		$("#progress").html(parseInt(progress*100));
+	});
+
+	var now = (function() {
+		var perf = window.performance || {};
+		var fn = perf.now || perf.mozNow || perf.webkitNow || perf.msNow || perf.oNow;
+		// fn.bind will be available in all the browsers that support the advanced window.performance... ;-)
+		return fn ? fn.bind(perf) : function() { return new Date().getTime(); };
+		})();
+
+	function search() {
+		var value = $("#typehere").val();
+		
+		var startTime = now();
+		
+		MameSearch.lookup(value, function(result) {
+			var time = now() - startTime;
+			time = time.toFixed(3);
+			result = "<div>Request processed in " + time + " ms</div>" + result;
+			$("#results").html(result);
+		});
+	}
+
+	$("#search").click(search);
+	$("#typehere").change(search);
+	$("#reload").click(function() {
+		MameSearch.reloadDatabase(function() {
+			window.location.reload(true);
+		});	
+	});
+	
+});</script>
+</body>
+</html>

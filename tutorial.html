@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="generator" content="pandoc">
+    <link rel="stylesheet" type="text/css" href="css/simplecssgrid-720.css" />
+    <link rel="stylesheet" type="text/css" href="css/default.css" />
+            <title></title>
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+            <style type="text/css">
+        table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+          margin: 0; padding: 0; vertical-align: baseline; border: none; }
+        table.sourceCode { width: 100%; }
+        td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+        td.sourceCode { padding-left: 5px; }
+        code > span.kw { color: #007020; font-weight: bold; }
+        code > span.dt { color: #902000; }
+        code > span.dv { color: #40a070; }
+        code > span.bn { color: #40a070; }
+        code > span.fl { color: #40a070; }
+        code > span.ch { color: #4070a0; }
+        code > span.st { color: #4070a0; }
+        code > span.co { color: #60a0b0; font-style: italic; }
+        code > span.ot { color: #007020; }
+        code > span.al { color: #ff0000; font-weight: bold; }
+        code > span.fu { color: #06287e; }
+        code > span.er { color: #ff0000; font-weight: bold; }
+    </style>
+                </head>
+<body>
+<div id="header">
+    <div class="grid">
+        <h1>Fullproof</h1>
+        <div style="float: right;">
+            <a href="index.html"><img src="img/home.png"></a>
+            <a href="https://github.com/reyesr/fullproof"><img src="img/blacktocat.png"></a>
+        </div>
+        <h2>a javascript search engine library for the browser</h2>
+    </div>
+</div>
+<div class="grid content">
+<h1 id="fullproof-tutorial">Fullproof Tutorial</h1>
+<p>Fullproof provides a pipeline of components that process text and manages inverted indexes. However, most of the components are managed by a top-level search engine component.</p>
+<h1 id="hands-on">Hands on</h1>
+<p>Let's create a search engine for Nintendo's Mario series characters.</p>
+<p>The very first step is of course to make fullproof available to your web application. Just add the <em>fullproof-all.js</em>, which contains everything. If you need to reduce the size of fullproof, you can create your own version by tweaking the build script and remove whatever feature you don't need. For the meantime, let's just use this one.</p>
+<pre class="sourceCode javascript" id="mycode"><code class="sourceCode javascript">    &lt;script type=<span class="st">&quot;text/javascript&quot;</span> src=<span class="st">&quot;fullproof-all.js&quot;</span>&gt;&lt;/script&gt;</code></pre>
+<p>For the sake of the tutorial, we also need some data to index. Fullproof is not a document storage, so you are responsible for loading and managing your own documents. In a normal application, you'll have them stored either in memory or in some local storage, the only requirement of fullproof is that you need to have a unique access key based on a primary type (typically a string or a number) for each of your documents.</p>
+<pre class="sourceCode javascript" id="mycode"><code class="sourceCode javascript">    <span class="kw">var</span> marioData= [
+        {<span class="dt">name</span>: <span class="st">&quot;Mario&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Protagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Luigi&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Protagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Princess Peach&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Protagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Toad&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Protagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Yoshi&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Protagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Toadsworth&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Supporting&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Donkey Kong&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Supporting&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Princess Daisy&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Supporting&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Professor E. Gadd&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Supporting&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Rosalina&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Supporting&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Pauline&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Supporting&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Birdo&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Supporting&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Toadette&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Supporting&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Bowser&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Antagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Bowser Jr&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Antagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Fawful&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Antagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Kammy Koopa&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Antagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Kamek&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Antagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;King Boo&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Antagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Petey Piranha&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Antagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Wario&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Antagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Waluigi&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Antagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Wart&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Antagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Koopa Kid&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Antagonist&quot;</span>},
+        {<span class="dt">name</span>: <span class="st">&quot;Tatanga&quot;</span>, <span class="dt">type</span>: <span class="st">&quot;Antagonist&quot;</span>}
+    ];</code></pre>
+<p>In this example, we'll just use the index in the array of data as reference key. Therefore, Mario is 0, Luigi is 1, and Tatanga is <code>marioData.length-1</code>.</p>
+<h1 id="choose-your-engine"> Choose your engine!</h1>
+<p>Two search engines are available in fullproof:</p>
+<ul>
+<li><p>the <em>BooleanEngine</em>: works by intersecting result sets, which means it only shows the results that match all the tokens from the query.</p></li>
+<li><p>the <em>ScoringEngine</em>: each result entry is given a score, the list of result sent back to your application is sorted accordingly. If there's more than one term in the query, it returns all the results that match any of them, but the most relevant (ie. the ones that contains most of the term) are scored better, so they can appear first.</p></li>
+</ul>
+<p>In this tutorial, we use the BooleanEngine, because it's well suited for a small list of names. For examples of the ScoringEngine, check the examples (its usage is very similar to the BooleanEngine).</p>
+<h1 id="crafting-your-indexes">Crafting your indexes</h1>
+<p>Wait, why is there several indexes ? Don't we just need one that associates each Mario's character name with its index in the array? We do. But using several indexes improves drastically the quality of the search. In our example, here is what we can do:</p>
+<ul>
+<li><p>The first index takes each name and apply very few modifications (we call them normalizations in fullproof): just convert to lowercase, and remove duplicate letters, as they are rarely useful. For instance <code>Mario</code> is turned into <code>mario</code>. Within this index, <code>mario</code> will be found whether the user types <code>MARIO</code>, <code>Marrio</code>, or <code>marioo</code>.</p></li>
+<li><p>The second index uses a more aggressive normalization, called the metaphone algorithm, that reduces each term to a simplified phonetic form. For instance, <code>mario</code> is converted to <code>MR</code>, and <code>rosalina</code> is converted into <code>RSLN</code>.</p></li>
+</ul>
+<p>The BooleanEngine always prefers the first index for the lookup results, but falls back to subsequent indexes when no results are found. From the user's point of view, it returns the exact result set when the terms is rightfully typed, but degrades to approximative results when the terms are erroneously typed, or if the terms is not in the document base.</p>
+<p>Of course, for best quality you have to always make sure the index are added in the right order: light normalization first, aggressive, stemming, or phonetic normalization after. There's no hard limit on how many indexes can be used by an engine, but the more you add, the more storage space it uses, and the longer it'll eventually take to return the search results. Two indexes is usually a good fit, you probably don't want more than 3, but you may have specific needs that would make you use more, and fullproof can perfectly handle that.</p>
+<h1 id="starting-the-search-engine">Starting the search engine</h1>
+<p>It takes a few step to init the engine.</p>
+<pre class="sourceCode javascript" id="mycode"><code class="sourceCode javascript">    <span class="kw">var</span> dbName = <span class="st">&quot;mario&quot;</span>;
+    <span class="kw">var</span> marioSearchEngine = <span class="kw">new</span> <span class="kw">fullproof</span>.<span class="fu">BooleanEngine</span>();</code></pre>
+<p>Then we define the indexes. Each index is represented by an object that defines the name of the index, the analyzer to use, the capabilities (an object that describes the requirement for the index), and an initializer (a function called when the index need to be populated, typically at creation time).</p>
+<pre class="sourceCode javascript" id="mycode"><code class="sourceCode javascript">    <span class="kw">var</span> index1 = {
+        <span class="dt">name</span>: <span class="st">&quot;normalindex&quot;</span>,
+        <span class="dt">analyzer</span>: <span class="kw">new</span> <span class="kw">fullproof</span>.<span class="fu">StandardAnalyzer</span>(<span class="kw">fullproof.normalizer</span>.<span class="fu">to</span>_<span class="fu">lowercase</span>_<span class="fu">nomark</span>, <span class="kw">fullproof.normalizer</span>.<span class="fu">remove</span>_<span class="fu">duplicate</span>_<span class="fu">letters</span>),
+        <span class="dt">capabilities</span>: <span class="kw">new</span> <span class="kw">fullproof</span>.<span class="fu">Capabilities</span>().<span class="fu">setUseScores</span>(<span class="kw">false</span>).<span class="fu">setDbName</span>(dbName),
+        <span class="dt">initializer</span>: initializer
+    };
+    <span class="kw">var</span> index2 = {
+        <span class="dt">name</span>: <span class="st">&quot;stemmedindex&quot;</span>,
+        <span class="dt">analyzer</span>: <span class="kw">new</span> <span class="kw">fullproof</span>.<span class="fu">StandardAnalyzer</span>(<span class="kw">fullproof.normalizer</span>.<span class="fu">to</span>_<span class="fu">lowercase</span>_<span class="fu">nomark</span>, <span class="kw">fullproof.english</span>.<span class="fu">metaphone</span>),
+        <span class="dt">capabilities</span>: <span class="kw">new</span> <span class="kw">fullproof</span>.<span class="fu">Capabilities</span>().<span class="fu">setUseScores</span>(<span class="kw">false</span>).<span class="fu">setDbName</span>(dbName),
+        <span class="dt">initializer</span>: initializer
+    };</code></pre>
+<p>The analyzer is an important part of the search engine, as it impacts greatly the quality of the results. Notice how each analyzer specifies an array of normalizers: those are small functions that turn a word (a linguistic token cut by the parser from the text) into a simplified (&quot;normalized&quot;) form of the same word. For instance, the <code>to_lowercase_nomark</code> function takes a word, converts it to lowercase and remove all diacritical mark. MARIO becomes mario, but MÄRÎÔ is also converted to mario. This may not seem very useful for english, but it defintely is whenever you're indexing any language that use diacritical marks (and most languages in the world use them).</p>
+<p>As a side note, another interesting feature of this <code>to_lowercase_nomark</code> is that unicode allows two forms for a single letter with a diacritical mark: one where the letter and its mark are combined, and another where they are not (they usually appear as distinct LETTER + MARK in the string. Adds to that that letters can also have more than one diacritical mark, and that the marks may appear in different orders, and you can see why this is a useful feature: it makes all those forms identical for the index.</p>
+<h1 id="the-initializer">The initializer</h1>
+<p>The initializer is the function called when the index is created. The first argument is a fullproof.TextInjector object that provide two functions: inject() and injectBulk(). A text injector is an object hooked on the index and the analyzer associated to the index that you feed with text and documents keys.</p>
+<pre class="sourceCode javascript" id="mycode"><code class="sourceCode javascript">    <span class="kw">function</span> initializer(injector, callback) {
+        <span class="kw">var</span> synchro = <span class="kw">fullproof</span>.<span class="fu">make</span>_<span class="fu">synchro</span>_<span class="fu">point</span>(callback, <span class="kw">marioData</span>.<span class="fu">length</span>);
+        <span class="kw">for</span> (<span class="kw">var</span> i=<span class="dv">0</span>;i&lt;<span class="kw">marioData</span>.<span class="fu">length</span>; ++i) {
+            <span class="kw">var</span> text = marioData[i].<span class="fu">name</span> +<span class="st">&quot; &quot;</span> + marioData[i].<span class="fu">type</span>;
+            <span class="kw">injector</span>.<span class="fu">inject</span>(text, i, synchro);
+        }
+    }</code></pre>
+<p>You certainly remember how most functions are asynchronous. <code>inject()</code> is no different, and its third argument is a function that is called when the injection is done. In order to call the main callback function (argument of <code>initializer</code>) when all the injections are done, we use a utility function <code>fullproof.make_synchro_point</code> that calls its first argument when the specified amount of calls are received.</p>
+<h1 id="starting-it-up">Starting it up</h1>
+<p>Now everything is ready, we can just start the engine. This is just a call to <code>open()</code>, with three parameters: the array of index descriptors we defined above, a success callback, and an error callback. In this example, we just use the <code>fullproof.make_callback()</code> to reroute both calls to the <code>engineReady()</code> function, which will receive either true or false as argument.</p>
+<pre class="sourceCode javascript" id="mycode"><code class="sourceCode javascript">        <span class="kw">marioSearchEngine</span>.<span class="fu">open</span>([index1, index2], <span class="kw">fullproof</span>.<span class="fu">make</span>_<span class="fu">callback</span>(engineReady, <span class="kw">true</span>), <span class="kw">fullproof</span>.<span class="fu">make</span>_<span class="fu">callback</span>(engineReady, <span class="kw">false</span>));</code></pre>
+<h1 id="callbacks">Callbacks</h1>
+<p>Note how the <code>open()</code> uses callback functions. Those function are called asynchronously when the action is complete. The second callback function is called if the engine fails to open its indexes.</p>
+<p>There's a lot of callback in fullproof, that's because most of the storage action are asynchronous and are called once the current javascript thread yields.</p>
+<h1 id="lets-search">Let's search</h1>
+<p>Once the search engine is ready, we can start using it. Do not try making lookups before it's ready, you may just get nothing or raise an exception in the worst case.</p>
+<p>To start a query, just use the <code>lookup()</code> function, with your query and a callback function that will asynchronously receive the results when it's ready. The result is an object of type fullproof.ResultSet (which manages a sorted array and provides basic set operations), possibly empty if the query does not return any result. If there are one or more result, you can iterate over it to build the text displayed to the user.</p>
+<p>So let's create a <code>search()</code> function that takes the value of an input field, use it as a query, looks it up in the search engine, and creates the user response based on the results.</p>
+<pre class="sourceCode javascript" id="mycode"><code class="sourceCode javascript">    <span class="kw">function</span> search() {
+        <span class="kw">var</span> value = $(<span class="st">&quot;#typehere&quot;</span>).<span class="fu">val</span>();
+
+        <span class="co">// Request a search to the mario engine, then displays the results, if any.</span>
+        <span class="kw">marioSearchEngine</span>.<span class="fu">lookup</span>(value, <span class="kw">function</span>(resultset) {
+            <span class="kw">var</span> result =<span class="st">&quot;&quot;</span>;
+            <span class="kw">if</span> (resultset &amp;&amp; <span class="kw">resultset</span>.<span class="fu">getSize</span>()) {
+                <span class="kw">var</span> rsize = <span class="kw">resultset</span>.<span class="fu">getSize</span>();
+                result = <span class="st">&quot;&lt;h1&gt;Found &quot;</span> + rsize + <span class="st">&quot; character&quot;</span>+(rsize&gt;<span class="dv">1</span>?<span class="st">&quot;s&quot;</span>:<span class="st">&quot;&quot;</span>)+<span class="st">&quot; matching your request.&lt;/h1&gt;&quot;</span>;
+                result += <span class="st">&quot;&lt;table&gt;&lt;tr&gt;&lt;th&gt;Name&lt;/th&gt;&lt;th&gt;Role&lt;/th&gt;&lt;/tr&gt;&quot;</span>
+                <span class="kw">resultset</span>.<span class="fu">forEach</span>(<span class="kw">function</span>(e) {
+                    <span class="kw">var</span> c = marioData[e];
+                    result += <span class="st">&quot;&lt;tr&gt;&lt;td style=&#39;font-weight: bold;&#39;&gt;&quot;</span>+ <span class="kw">c</span>.<span class="fu">name</span>+<span class="st">&quot;&lt;/td&gt;&quot;</span>;
+                    result += <span class="st">&quot;&lt;td&gt;&quot;</span>+ <span class="kw">c</span>.<span class="fu">type</span>+<span class="st">&quot;&lt;/td&gt;&lt;/tr&gt;&quot;</span>;
+                });
+                result += <span class="st">&quot;&lt;/table&gt;&quot;</span>;
+            } <span class="kw">else</span> {
+                result = <span class="st">&quot;&lt;h2&gt;No result found :-(&lt;/h2&gt;&quot;</span>;
+            }
+            $(<span class="st">&quot;#results&quot;</span>).<span class="fu">html</span>(result);
+        });
+    }</code></pre>
+</div>
+</body>
+</html>

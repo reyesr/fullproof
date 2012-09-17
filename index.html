@@ -1,74 +1,65 @@
 <!DOCTYPE html>
 <html>
-
-  <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Fullproof : javascript fulltext search engine" />
-
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
-
-    <title>Fullproof</title>
-  </head>
-
-  <body>
-
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/reyesr/fullproof">View on GitHub</a>
-
-          <h1 id="project_title">Fullproof</h1>
-          <h2 id="project_tagline">javascript fulltext search engine</h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/reyesr/fullproof/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/reyesr/fullproof/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
+<head>
+    <meta charset="utf-8">
+    <meta name="generator" content="pandoc">
+    <link rel="stylesheet" type="text/css" href="css/simplecssgrid-720.css" />
+    <link rel="stylesheet" type="text/css" href="css/default.css" />
+            <title></title>
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+                    </head>
+<body>
+<div id="header">
+    <div class="grid">
+        <h1>Fullproof</h1>
+        <div style="float: right;">
+            <a href="index.html"><img src="img/home.png"></a>
+            <a href="https://github.com/reyesr/fullproof"><img src="img/blacktocat.png"></a>
+        </div>
+        <h2>a javascript search engine library for the browser</h2>
     </div>
+</div>
+<div class="grid content">
+<p>Fullproof is a javascript library that provides high-quality full-text search in the browser.</p>
+<p>This specially makes sense if your webapp is designed to work offline, using the HTML5 offline feature or because your application runs on a possibly disconnected mobile device.</p>
+<h3 id="features">Features</h3>
+<ul>
+<li>Boolean and Scoring search engines available, depending on the kind of search your application needs</li>
+<li>Automatic HTML5 storage detection, and graceful degradation, with a configurable constraint-based capabilities system. Currently manages WebSQL, IndexedDB and Memory data storage.</li>
+<li>Full unicode support and normalization, diacritical marks removal, stemming and phonetical algorithms (currently available for english and french)</li>
+<li>Configurable and very easely extensible parsing and token normalization system</li>
+<li>Easy to integrate, zero external dependency, ~100k minified</li>
+</ul>
+<p>Note the fullproof is NOT a document management system, it does only one thing: provide fulltext search to your application, it does not aim at storing documents or data.</p>
+<h3 id="some-screenshots"> Some Screenshots</h3>
+<div id="screenshots">
+<p>A few screenshots from the examples.</p>
+<figure>
+<img src="img/sc-colors.png" alt="Color search using metaphone"><figcaption>Color search using metaphone</figcaption>
+</figure>
+<figure>
+<img src="img/sc-animals.png" alt="Animals from the US"><figcaption>Animals from the US</figcaption>
+</figure>
+<figure>
+<img src="img/sc-mame.png" alt="Searching in the pool of MAME Roms"><figcaption>Searching in the pool of MAME Roms</figcaption>
+</figure>
+</div>
 
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h3>Welcome to GitHub Pages.</h3>
-
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
-
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
-
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
-
-<h3>Designer Templates</h3>
-
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
-
-<h3>Rather Drive Stick?</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>Authors and Contributors</h3>
-
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-      </section>
-    </div>
-
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Fullproof maintained by <a href="https://github.com/reyesr">reyesr</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
-
-    
-
-  </body>
+<h3 id="want-more-information">Want more information ?</h3>
+<ul>
+<li>Try the samples
+<ul>
+<li>Colors : <a href="examples/colors/colors.html">search colors by name</a> using a BooleanEngine hooked on metaphone</li>
+<li>Animal Species: <a href="examples/animals/animals.html">search US animal species</a>, uses the fullproof BooleanEngine</li>
+<li>Mame: <a href="examples/mame/mamesearch.html">search the huuuge MAME ROM list</a> using the fullproof ScoringEngine</li>
+</ul></li>
+<li><a href="tutorial.html">Read the tutorial</a></li>
+<li><a href="https://github.com/reyesr/fullproof/wiki">Visit the wiki for more documentation</a> or <a href="jsdocs/index.html">the generated JSDOC</a></li>
+<li><a href="https://github.com/reyesr/fullproof">Visit the GitHub repository</a></li>
+<li><a href="https://github.com/reyesr/fullproof/downloads">Download at GitHub</a></li>
+</ul>
+</div>
+</body>
 </html>

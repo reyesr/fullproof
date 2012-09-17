@@ -1,0 +1,86 @@
+#header {
+    background-image: url('bg.png');
+    background-repeat: repeat-x;
+    color: white;
+    overflow: auto;
+    padding: 8px 0 8px 0;
+    margin: 0;
+    border-bottom: 2px solid black;
+    background: black;
+}
+
+#header h1 {
+    color: white;
+    font-size: 3em;
+    padding: 0;
+    margin: 0;
+    text-shadow:1px 1px 12px #ffffff;
+    filter: dropshadow(color=#ffffff, offx=1, offy=1);
+    font-family: monospace;
+}
+
+#header h2 {
+    color: white;
+    font-size: 1.1em;
+    font-style: italic;
+    padding: 0;
+    margin: 0;
+}
+
+#header div div {
+    color: white;
+    font-size: 1em;
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-style: italic;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+}
+
+#results table td {
+    font-size: 1.25em;
+    font-weight: bold;
+    padding-left: 16px;
+}
+
+#results table th {
+    font-size: 1.0em;
+    font-weight: normal;
+    min-width: 100px;
+    padding-left: 16px;
+}
+
+.formbg {
+    background: #adadad; padding: 16px;
+    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ededed), color-stop(1, #afafaf) );
+    background:-moz-linear-gradient( center top, #ededed 5%, #afafaf 100% );
+}
+
+.content h3 {
+    font-size: 1.2em;
+    font-style: italic;
+    font-weight: bold;
+}
+
+#screenshots {
+    text-align: center;
+}
+#screenshots figcaption {
+    text-align: center;
+    font-style: italic;
+    font-size: 0.9em;
+}
+
+#screenshots img {
+    border: 1px solid black;
+    text-shadow:10px 10px 12px #444444;
+    filter: dropshadow(color=#444444, offx=1, offy=1);
+
+}
+
+a {
+    color: rgba(39, 10, 88, 0.99);
+}
