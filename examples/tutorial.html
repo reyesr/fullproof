@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Fullproof example: Color Names</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+
+    <!-- START DEV SCRIPTS -->
+    <script type="text/javascript" src="../src/unicode/categ_letters_numbers.js"></script>
+    <script type="text/javascript" src="../src/unicode/normalizer_lowercase_nomark.js"></script>
+    <script type="text/javascript" src="../src/unicode/unicode.js"></script>
+
+    <script type="text/javascript" src="../src/analyzers.js"></script>
+    <script type="text/javascript" src="../src/normalizers.js"></script>
+    <script type="text/javascript" src="../src/normalizers/english/porter-stemmer.js"></script>
+    <script type="text/javascript" src="../src/normalizers/english/metaphone.js"></script>
+    <script type="text/javascript" src="../src/misc/dataloader.js"></script>
+    <script type="text/javascript" src="../src/capabilities.js"></script>
+
+    <script type="text/javascript" src="../src/utils.js"></script>
+    <script type="text/javascript" src="../src/boolean-engine.js"></script>
+    <script type="text/javascript" src="../src/common-engine.js"></script>
+    <script type="text/javascript" src="../src/resultsets.js"></script>
+    <script type="text/javascript" src="../src/storemanager.js"></script>
+    <script type="text/javascript" src="../src/stores/memory_store.js"></script>
+    <script type="text/javascript" src="../src/stores/websql_store.js"></script>
+    <script type="text/javascript" src="../src/stores/indexeddb_store.js"></script>
+    <!-- END DEV SCRIPTS -->
+
+</head>
+<body class="">
+<h1>Tutorial</h1>
+<h2>Nintendo's mario series characters search</h2>
+
+<div class="formbg">
+    <div id="application">
+        <div>
+            <input type="text" id="typehere" class="typebox">
+            <button id="search">Search My Character!</button>
+        </div>
+    </div>
+</div>
+<div class="grid">
+    <div id="results"></div>
+</div>
+
+
+<script type="text/javascript">
+
+    /**
+     * The data we want to index
+     * @type {Array}
+     */
+    var marioData= [
+        {name: "Mario", type: "Protagonist"},
+        {name: "Luigi", type: "Protagonist"},
+        {name: "Princess Peach", type: "Protagonist"},
+        {name: "Toad", type: "Protagonist"},
+        {name: "Yoshi", type: "Protagonist"},
+
+        {name: "Toadsworth", type: "Supporting"},
+        {name: "Donkey Kong", type: "Supporting"},
+        {name: "Princess Daisy", type: "Supporting"},
+        {name: "Professor E. Gadd", type: "Supporting"},
+        {name: "Rosalina", type: "Supporting"},
+        {name: "Pauline", type: "Supporting"},
+        {name: "Birdo", type: "Supporting"},
+        {name: "Toadette", type: "Supporting"},
+
+        {name: "Bowser", type: "Antagonist"},
+        {name: "Bowser Jr", type: "Antagonist"},
+        {name: "Fawful", type: "Antagonist"},
+        {name: "Kammy Koopa", type: "Antagonist"},
+        {name: "Kamek", type: "Antagonist"},
+        {name: "King Boo", type: "Antagonist"},
+        {name: "Petey Piranha", type: "Antagonist"},
+        {name: "Wario", type: "Antagonist"},
+        {name: "Waluigi", type: "Antagonist"},
+        {name: "Wart", type: "Antagonist"},
+        {name: "Koopa Kid", type: "Antagonist"},
+        {name: "Tatanga", type: "Antagonist"}
+    ];
+
+    /**
+     * The initializer is a function called by the engine when the index
+     * is created for the first time. It provides an opportunity to populate
+     * the index with its data.
+     * @param {fullproof.TextInjector} injector an object of type fullproof.TextInjector
+     * @param callback function function to call when the initialization is done
+     */
+    function initializer(injector, callback) {
+        var synchro = fullproof.make_synchro_point(callback, marioData.length);
+        for (var i=0;i<marioData.length; ++i) {
+            var text = marioData[i].name +" " + marioData[i].type;
+            injector.inject(text, i, synchro);
+        }
+    }
+
+    /**
+     * This function get called when the engine is done opening itself
+     * @param b true if the engine was successfully open, false otherwise
+     */
+    function engineReady(b) {
+        if (!b) {
+            alert("Can't load the search engine!");
+        }
+
+    }
+
+    $(document).ready(function() {
+        var dbName = "mario";
+        var marioSearchEngine = new fullproof.BooleanEngine();
+
+        var index1 = {
+            name: "normalindex",
+            analyzer: new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.normalizer.remove_duplicate_letters),
+            capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName),
+            initializer: initializer
+        };
+        var index2 = {
+            name: "stemmedindex",
+            analyzer: new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.english.metaphone),
+            capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName),
+            initializer: initializer
+        };
+
+        marioSearchEngine.open([index1, index2], fullproof.make_callback_caller(engineReady, true), fullproof.make_callback_caller(engineReady, false));
+
+        /**
+         * The seach function manages the terms lookup and result display
+         */
+        function search() {
+            var value = $("#typehere").val();
+
+            // Request a search to the mario engine, then displays the results, if any.
+            marioSearchEngine.lookup(value, function(resultset) {
+                var result ="";
+                if (resultset && resultset.getSize()) {
+                    var rsize = resultset.getSize();
+                    result = "<h1>Found " + rsize + " character"+(rsize>1?"s":"")+" matching your request.</h1>";
+                    result += "<table><tr><th>Name</th><th>Role</th></tr>"
+                    resultset.forEach(function(e) {
+                        var c = marioData[e];
+                        result += "<tr><td style='font-weight: bold;'>"+ c.name+"</td>";
+                        result += "<td>"+ c.type+"</td></tr>";
+                    });
+                    result += "</table>";
+                } else {
+                    result = "<h2>No result found :-(</h2>";
+                }
+                $("#results").html(result);
+            });
+        }
+
+        // Bind the search action
+        $("#search").click(search);
+        $("#typehere").change(search);
+
+    });</script>
+</body>
+</html>
