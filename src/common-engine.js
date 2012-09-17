@@ -134,37 +134,41 @@ fullproof.AbstractEngine.prototype.checkCapabilities = function (capabilities, a
  * Adds an array of index units
  * @param indexes an array of fullproof.IndexUnit instances
  * @param callback the function to call when all the indexes are added
+ * @private
+ * @static
  */
-fullproof.AbstractEngine.prototype.addIndexes = function (indexes, callback) {
+fullproof.AbstractEngine.addIndexes = function (engine, indexes, callback) {
     var starter = false;
-    var engine = this;
     while (indexes.length > 0) {
         var data = indexes.pop();
         starter = (function (next, data) {
             return function () {
-                engine.addIndex(data.name, data.analyzer, data.capabilities, data.initializer, next !== false ? next : callback);
+                fullproof.AbstractEngine.addIndex(engine, data.name, data.analyzer, data.capabilities, data.initializer, next !== false ? next : callback);
             };
         })(starter, data);
     }
     if (starter !== false) {
         starter();
     }
+    return this;
 };
 
 /**
- * Adds un index to the engine
+ * Adds un index to the engine. It is not possible to add an index after the engine was opened.
  * @param name the name of the engine
  * @param the analyzer used to parse the text
  * @param capabilities a fullproof.Capabilities instance describing the requirements for the index
  * @param initializer a function called when the index is created. This function can be used to populate the index.
  * @param completionCallback a function on completion, with true if the index was successfully added, false otherwise.
  * @return this instance
+ * @private
+ * @static
  */
-fullproof.AbstractEngine.prototype.addIndex = function(name, analyzer, capabilities, initializer, completionCallback) {
-	var self = this;
+fullproof.AbstractEngine.addIndex = function(engine, name, analyzer, capabilities, initializer, completionCallback) {
+	var self = engine;
 	var indexData = new fullproof.IndexUnit(name,capabilities,analyzer); 
 
-	if (!this.checkCapabilities(capabilities, analyzer)) {
+	if (!engine.checkCapabilities(capabilities, analyzer)) {
 		return completionCallback(false);
 	}
 
@@ -173,12 +177,12 @@ fullproof.AbstractEngine.prototype.addIndex = function(name, analyzer, capabilit
 		initializer(injector, callback);
 	});
 	
-	if (this.storeManager.addIndex(indexRequest)) {
-		if (this.indexes === undefined) {
-			this.indexes = [];
+	if (engine.storeManager.addIndex(indexRequest)) {
+		if (engine.indexes === undefined) {
+            engine.indexes = [];
 		}
-		this.indexes.push(indexData);
-		this.indexesByName[name] = indexData;
+        engine.indexes.push(indexData);
+        engine.indexesByName[name] = indexData;
 		if (completionCallback) {
 			completionCallback(true);
 		}
@@ -195,11 +199,15 @@ fullproof.AbstractEngine.prototype.addIndex = function(name, analyzer, capabilit
  * Opens the engine: this function opens all the indexes at once, makes the initialization if needed,
  *  and makes this engine ready for use. Do not use any function of an engine, except addIndex, before
  *  having opened it.
+ *  @param indexArray an array of index descriptors. Each descriptor is an object that defines the name, analyzer, capabilities, and initializer properties.
  *  @param callback function called when the engine is properly opened
  *  @param errorCallback function called if for some reason the engine cannot open some index
  */
-fullproof.AbstractEngine.prototype.open = function (callback, errorCallback) {
+fullproof.AbstractEngine.prototype.open = function (indexArray, callback, errorCallback) {
     var self = this;
+
+    fullproof.AbstractEngine.addIndexes(self, indexArray);
+
     this.storeManager.openIndexes(function (storesArray) {
         self.storeManager.forEach(function (name, index) {
             self.indexesByName[name].index = index;
