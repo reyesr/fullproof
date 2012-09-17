@@ -17,6 +17,23 @@ var fullproof = fullproof||{};
 (function() {
 "use strict";
 
+    fullproof.AbstractAnalyzer = function() {
+        /**
+         * Sometimes it's convenient to receive the whole set of words cut and normalized by the
+         * analyzer. This method calls the callback parameter only once, with as single parameter
+         * an array of normalized words.
+         * @param text some text to analyze
+         * @param callback a function called with an array (possibly empty) of string
+         */
+        this.getArray = function(text, callback) {
+            var parser_synchro = fullproof.make_synchro_point(function(array_of_words) {
+                callback(array_of_words);
+            });
+            this.parse(text, parser_synchro);
+        };
+
+    }
+
 	/**
 	 * A simple private parser that relies on the unicode letter/number
 	 * categories. Word boundaries are whatever is not a letter 
@@ -64,14 +81,14 @@ var fullproof = fullproof||{};
 	 * passed in the constructor.
 	 */
 	fullproof.StandardAnalyzer = function() {
-		
-		// Enforces new object
+        var normalizers = arguments_to_array(arguments);
+
+        // Enforces new object
 		if (!(this instanceof fullproof.StandardAnalyzer)) {
 			return new fullproof.StandardAnalyzer(normalizers);
 		}
 
 		// Stores the normalizers... (don't store arguments, as it contains more than an array) 
-		var normalizers = arguments_to_array(arguments);
 		this.provideScore = false;
 		/**
 		 * When true, the parser calls its callback function with 
@@ -109,21 +126,9 @@ var fullproof = fullproof||{};
                 }
             });
         };
-		
-		/**
-		 * Sometimes it's convenient to receive the whole set of words cut and normalized by the
-		 * analyzer. This method calls the callback parameter only once, with as single parameter
-		 * an array of normalized words.
-		 * @param text some text to analyze
-		 * @param callback a function called with an array (possibly empty) of string
-		 */
-		this.getArray = function(text, callback) {
-			var parser_synchro = fullproof.make_synchro_point(function(array_of_words) {
-				callback(array_of_words);
-			});
-			this.parse(text, parser_synchro);
-		};
 	};
+
+    fullproof.StandardAnalyzer.prototype = new fullproof.AbstractAnalyzer();
 
 	fullproof.ScoringAnalyzer = function() {
 		// Stores the normalizers... (don't store arguments, as it contains more than an array) 
@@ -141,9 +146,6 @@ var fullproof = fullproof||{};
                 if (word !== false) {
                     if (words[word] === undefined || words[word].constructor !== Array) {
                         words[word] = [];
-                    }
-                    if (!words[word].push) {
-                        console.log("eRROR");
                     }
                     words[word].push(wordcount);
                     totalwc += ++wordcount;
@@ -170,21 +172,9 @@ var fullproof = fullproof||{};
             });
         };
 		
-		/**
-		 * Sometimes it's convenient to receive the whole set of words cut and normalized by the
-		 * analyzer. This method calls the callback parameter only once, with as single parameter
-		 * an array of normalized words.
-		 * @param text some text to analyze
-		 * @param callback a function called with an array (possibly empty) of string
-		 */
-		this.getArray = function(text, callback) {
-			var parser_synchro = fullproof.make_synchro_point(function(array_of_words) {
-				callback(array_of_words);
-			});
-			this.parse(text, parser_synchro);
-		};
 
 	};
-	
-	
+    fullproof.ScoringAnalyzer.prototype = new fullproof.AbstractAnalyzer();
+
+
 })();

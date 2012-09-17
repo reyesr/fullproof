@@ -205,7 +205,7 @@ fullproof.AbstractEngine.addIndex = function(engine, name, analyzer, capabilitie
  */
 fullproof.AbstractEngine.prototype.open = function (indexArray, callback, errorCallback) {
     var self = this;
-
+    indexArray = (indexArray.constructor !== Array)?[indexArray]:indexArray; // Makes it an Array if it's not
     fullproof.AbstractEngine.addIndexes(self, indexArray);
 
     this.storeManager.openIndexes(function (storesArray) {
@@ -248,6 +248,10 @@ fullproof.AbstractEngine.prototype.injectDocument = function(text, value, callba
  * @param callback a function called when all the indexes are cleared.
  */
 fullproof.AbstractEngine.prototype.clear = function(callback) {
+    "use strict";
+    if (this.getIndexCount() === 0) {
+        return callback();
+    }
 	var synchro = fullproof.make_synchro_point(callback, this.getIndexCount());
 	this.forEach(function(name, index, parser) {
 		if (name) {

@@ -70,10 +70,10 @@ var colorsData = [];
 function loadData(callbackWhenDone) {
     var loader = new fullproof.DataLoader();
     loader.setQueue("colors.csv");
-    loader.start(fullproof.make_callback_caller(callbackWhenDone, true),
+    loader.start(fullproof.make_callback(callbackWhenDone, true),
             function(txt) {
                 colorsData = txt.split("\n");
-            }, fullproof.make_callback_caller(callbackWhenDone, false));
+            }, fullproof.make_callback(callbackWhenDone, false));
 }
 
 /**
@@ -145,10 +145,7 @@ $(document).ready(function() {
             initializer: initializer
         };
 
-        colorSearchEngine.addIndexes([index1, index2], function(res) {
-            colorSearchEngine.open(fullproof.make_callback_caller(engineReady, true), fullproof.make_callback_caller(engineReady, false));
-        });
-
+        colorSearchEngine.open([index1, index2], fullproof.make_callback(engineReady, true), fullproof.make_callback(engineReady, false));
     });
 
     /**

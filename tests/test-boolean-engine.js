@@ -18,15 +18,15 @@ test("create boolean engine no index", function() {
 	var engine = new fullproof.BooleanEngine();
 	expect(1);
 	QUnit.stop();
-	engine.open(fullproof.tests.success_restart, fullproof.tests.error_restart);
+	engine.open([], fullproof.tests.success_restart, fullproof.tests.error_restart);
 });
 
 test("clear index", function() {
 	var engine = new fullproof.BooleanEngine();
 	expect(1);
 	QUnit.stop();
-	engine.addIndex("myindex", new fullproof.StandardAnalyzer, new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), initializerFunc);
-	engine.open(function() {
+	engine.open(new fullproof.IndexUnit("myindex", new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), new fullproof.StandardAnalyzer, initializerFunc),
+        function() {
 		var index = engine.getIndex("myindex");
 		index.clear(function() {
 			index.lookup("third", function(resultset) {
@@ -40,76 +40,74 @@ test("clear index", function() {
 test("create one index", function() {
 	var engine = new fullproof.BooleanEngine();
 	QUnit.stop();
-	engine.addIndex("myindex", new fullproof.StandardAnalyzer, new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), initializerFunc);
-	engine.open(function() {
-		var index = engine.getIndex("myindex");
-		ok(!!index);
-		engine.clear(function() {
-			engine.injectDocument("third", 45, function() {
-				engine.lookup("third", function(resultset) {
-					ok(!!resultset);
-					equal(resultset.getSize(), 1);
-					equal(parseInt(resultset.getItem(0)), 45);
-					ok(!!resultset);
-					QUnit.start();
-				});
-			});
-		});
-	});
+	engine.open(new fullproof.IndexUnit("myindex", new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), new fullproof.StandardAnalyzer, initializerFunc),
+        function() {
+            var index = engine.getIndex("myindex");
+            ok(!!index);
+            engine.clear(function() {
+                engine.injectDocument("third", 45, function() {
+                    engine.lookup("third", function(resultset) {
+                        ok(!!resultset);
+                        equal(resultset.getSize(), 1);
+                        equal(parseInt(resultset.getItem(0)), 45);
+                        ok(!!resultset);
+                        QUnit.start();
+                    });
+                });
+            });
+        });
 });
 
 test("create index intersect 1", function() {
 	var engine = new fullproof.BooleanEngine();
 	QUnit.stop();
-	engine.addIndex("myindex", 
-			new fullproof.StandardAnalyzer, 
-			new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), 
-			initializerFunc);
-	engine.open(function() {
-		var index = engine.getIndex("myindex");
-		ok(!!index);
-		engine.lookup("line", function(resultset) {
-			ok(!!resultset);
-			equal(resultset.getSize(), 3);
-			equal(parseInt(resultset.getItem(0)), 1);
-			equal(parseInt(resultset.getItem(1)), 2);
-			equal(parseInt(resultset.getItem(2)), 3);
-			ok(!!resultset);
-			QUnit.start();
-		});
-	});
+    engine.open(new fullproof.IndexUnit("myindex", new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), new fullproof.StandardAnalyzer, initializerFunc),
+        function() {
+            var index = engine.getIndex("myindex");
+            ok(!!index);
+            engine.lookup("line", function(resultset) {
+                ok(!!resultset);
+                equal(resultset.getSize(), 3);
+                equal(parseInt(resultset.getItem(0)), 1);
+                equal(parseInt(resultset.getItem(1)), 2);
+                equal(parseInt(resultset.getItem(2)), 3);
+                ok(!!resultset);
+                QUnit.start();
+            });
+        });
 });
 
 test("create index intersect 2", function() {
 	var engine = new fullproof.BooleanEngine();
 	QUnit.stop();
-	engine.addIndex("myindex", 
-			new fullproof.StandardAnalyzer, 
-			new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), 
-			initializerFunc); 
-	engine.open(function(index) {
-		ok(!!index);
-		
-		engine.lookup("data line", function(resultset) {
-			ok(!!resultset);
-			equal(resultset.getSize(), 2);
-			equal(parseInt(resultset.getItem(0)), 1);
-			equal(parseInt(resultset.getItem(1)), 3);
-			ok(!!resultset);
-			QUnit.start();
-		});
-	});
+	engine.open(new fullproof.IndexUnit("myindex",
+        new fullproof.Capabilities().setStoreObjects(false).setUseScores(false),
+        new fullproof.StandardAnalyzer(),
+        initializerFunc),
+        function(index) {
+            ok(!!index);
+
+            engine.lookup("data line", function(resultset) {
+                ok(!!resultset);
+                equal(resultset.getSize(), 2);
+                equal(parseInt(resultset.getItem(0)), 1);
+                equal(parseInt(resultset.getItem(1)), 3);
+                ok(!!resultset);
+                QUnit.start();
+            });
+        });
 });
 
 test("create index union 1", function() {
 	var engine = new fullproof.BooleanEngine();
 	engine.booleanMode = fullproof.BooleanEngine.CONST_MODE_UNION;
 	QUnit.stop();
-	engine.addIndex("myindex", 
-			new fullproof.StandardAnalyzer, 
-			new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), 
-			initializerFunc); 
-	engine.open(function(index) {
+
+	engine.open(new fullproof.IndexUnit("myindex",
+            new fullproof.Capabilities().setStoreObjects(false).setUseScores(false),
+            new fullproof.StandardAnalyzer(),
+            initializerFunc),
+        function(index) {
 		ok(!!index);
 		
 		engine.lookup("data line", function(resultset) {
@@ -129,22 +127,22 @@ test("create index union 2", function() {
 	var engine = new fullproof.BooleanEngine();
 	engine.booleanMode = fullproof.BooleanEngine.CONST_MODE_UNION;
 	QUnit.stop();
-	engine.addIndex("myindex", 
-			new fullproof.StandardAnalyzer, 
-			new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), 
-			initializerFunc); 
-	engine.open(function(index) {
-		ok(!!index);
-		
-		engine.lookup("high row", function(resultset) {
-			ok(!!resultset);
-			equal(resultset.getSize(), 2);
-			equal(parseInt(resultset.getItem(0)), 4);
-			equal(parseInt(resultset.getItem(1)), 5);
-			ok(!!resultset);
-			QUnit.start();
-		});
-	});
+	engine.open(new fullproof.IndexUnit("myindex",
+            new fullproof.Capabilities().setStoreObjects(false).setUseScores(false),
+            new fullproof.StandardAnalyzer,
+            initializerFunc),
+        function(index) {
+            ok(!!index);
+
+            engine.lookup("high row", function(resultset) {
+                ok(!!resultset);
+                equal(resultset.getSize(), 2);
+                equal(parseInt(resultset.getItem(0)), 4);
+                equal(parseInt(resultset.getItem(1)), 5);
+                ok(!!resultset);
+                QUnit.start();
+            });
+        });
 });
 
 function normalizer_firstletteronly(word, callback) {
@@ -155,15 +153,15 @@ function normalizer_firstletteronly(word, callback) {
 test("create two index", function() {
 	var engine = new fullproof.BooleanEngine();
 	QUnit.stop();
-	engine.addIndex("myindex", 
-			new fullproof.StandardAnalyzer, 
-			new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), 
-			initializerFunc);
-	engine.addIndex("myindex2", 
-			new fullproof.StandardAnalyzer(normalizer_firstletteronly),
-			new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), 
-			initializerFunc);
-	engine.open(function(index) {
+	var index1 = new fullproof.IndexUnit("myindex",
+			new fullproof.Capabilities().setStoreObjects(false).setUseScores(false),
+            new fullproof.StandardAnalyzer,
+            initializerFunc);
+    var index2 = new fullproof.IndexUnit("myindex2",
+			new fullproof.Capabilities().setStoreObjects(false).setUseScores(false),
+            new fullproof.StandardAnalyzer(normalizer_firstletteronly),
+            initializerFunc);
+	engine.open([index1, index2], function(index) {
 		ok(!!index);
 		engine.lookup("thaaa", function(resultset) {
 			ok(!!resultset);
@@ -179,15 +177,16 @@ test("create two index", function() {
 	var engine = new fullproof.BooleanEngine();
 	engine.booleanMode = fullproof.BooleanEngine.CONST_MODE_UNION;
 	QUnit.stop();
-	engine.addIndex("myindex", 
-			new fullproof.StandardAnalyzer, 
-			new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), 
-			initializerFunc);
-	engine.addIndex("myindex2", 
-			new fullproof.StandardAnalyzer(normalizer_firstletteronly), 
-			new fullproof.Capabilities().setStoreObjects(false).setUseScores(false), 
-			initializerFunc);
-	engine.open(function(index) {
+    var index1 = new fullproof.IndexUnit("myindex",
+			new fullproof.Capabilities().setStoreObjects(false).setUseScores(false),
+            new fullproof.StandardAnalyzer,
+            initializerFunc);
+    var index2 = new fullproof.IndexUnit("myindex2",
+			new fullproof.Capabilities().setStoreObjects(false).setUseScores(false),
+            new fullproof.StandardAnalyzer(normalizer_firstletteronly),
+            initializerFunc);
+
+	engine.open([index1, index2], function(index) {
 		ok(!!index);
 		engine.lookup("thaaa duck", function(resultset) {
 			ok(!!resultset);

@@ -42,7 +42,7 @@ fullproof.store = fullproof.store||{};
 
 	function setObject(store, object, callback, error) {
 		var req = store.put(object);
-		install_on_request(req, fullproof.make_callback_caller(callback, object), error);
+		install_on_request(req, fullproof.make_callback(callback, object), error);
 	}
 	
 	function getOrCreateObject(store, keyValue, defaultValue, callback, error) {
@@ -97,7 +97,7 @@ fullproof.store = fullproof.store||{};
 	IndexedDBIndex.prototype.clear = function (callback) {
         callback = callback || function(){};
         var self = this;
-        var wrongfunc = fullproof.make_callback_caller(callback, false);
+        var wrongfunc = fullproof.make_callback(callback, false);
         var tx = this.database.transaction([this.name, this.parent.metaStoreName], fullproof.store.READWRITEMODE);
         var metastore = tx.objectStore(this.parent.metaStoreName);
         install_on_request(metastore.put({id:this.name, init:false}), function () {
@@ -105,7 +105,7 @@ fullproof.store = fullproof.store||{};
                 var tx = self.database.transaction([self.name], fullproof.store.READWRITEMODE);
                 var store = tx.objectStore(self.name);
                 var req = store.clear();
-                install_on_request(req, fullproof.make_callback_caller(callback, true), wrongfunc);
+                install_on_request(req, fullproof.make_callback(callback, true), wrongfunc);
             });
         }, wrongfunc);
     };
@@ -126,8 +126,8 @@ fullproof.store = fullproof.store||{};
 				rs.insert(value);
 			}
 			obj.v = rs.getDataUnsafe();
-			setObject(store, obj, callback, fullproof.make_callback_caller(callback, false));
-		}, fullproof.make_callback_caller(callback,false));
+			setObject(store, obj, callback, fullproof.make_callback(callback, false));
+		}, fullproof.make_callback(callback,false));
 	};
 
     var storedObjectComparator_score = {
@@ -353,7 +353,7 @@ fullproof.store = fullproof.store||{};
 					
 			if (self.database.version !== undefined && self.database.setVersion && self.database.version != self.dbVersion) {
 				var versionreq = self.database.setVersion(self.dbVersion);
-				versionreq.onerror = fullproof.make_callback_caller(errorCallback, "Can't change version with setVersion(" +self.dbVersion+")");
+				versionreq.onerror = fullproof.make_callback(errorCallback, "Can't change version with setVersion(" +self.dbVersion+")");
 				versionreq.onsuccess = function(ev) {
 					createStores(self.database, reqIndexArray, self.metaStoreName);
 					checkInit(self, self.database, self.indexRequests, 
@@ -362,7 +362,7 @@ fullproof.store = fullproof.store||{};
 							}, errorCallback);
 				}
 			} else {
-				checkInit(self, self.database, self.indexRequests, fullproof.make_callback_caller(callback, indexArrayResult), errorCallback);
+				checkInit(self, self.database, self.indexRequests, fullproof.make_callback(callback, indexArrayResult), errorCallback);
 			}	
 		};
 		openRequest.onupgradeneeded = function(ev) {

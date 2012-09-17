@@ -130,7 +130,7 @@ fullproof.call_new_thread = function() {
  * @param {function} callback a function reference to call when the created function is called
  * @param {...*} varargs any number of arguments that will be applied to the callback function, when called.
  */
-fullproof.make_callback_caller = function(callback) {
+fullproof.make_callback = function(callback) {
 	var args = Array.prototype.slice.call(arguments, 1);
 	return function() {
 		if (callback) {

@@ -50,10 +50,16 @@ fullproof.ScoringEngine.prototype.checkCapabilities = function (capabilities, an
 fullproof.ScoringEngine.prototype.lookup = function(text, callback) {
 	
 	var units = this.getIndexUnits();
-	
-	function merge_resultsets(rset_array, storeDesc) {
+
+    function applyScoreModifier(resultset, modifier) {
+        for (var i= 0, data=resultset.getDataUnsafe(), len=data.length; i<len; ++i){
+            data[i].score *= modifier;
+        }
+    }
+
+	function merge_resultsets(rset_array, unit) {
 		if (rset_array.length == 0) {
-			return new fullproof.ResultSet(storeDesc.caps.getComparatorObject());
+			return new fullproof.ResultSet(unit.capabilities.getComparatorObject());
 		} else {
 			var set = rset_array.shift();
 			while (rset_array.length > 0) {
@@ -76,7 +82,10 @@ fullproof.ScoringEngine.prototype.lookup = function(text, callback) {
 						callback(new fullproof.ResultSet(store.caps.getComparatorObject()));
 					} else {
 						var lookup_synchro = fullproof.make_synchro_point(function(rset_array) {
-							var merged = merge_resultsets(rset_array, unit.capabilities.getComparatorObject());
+							var merged = merge_resultsets(rset_array, unit);
+                            if (unit.capabilities.getScoreModifier() !== undefined) {
+                                applyScoreModifier(merged, unit.capabilities.getScoreModifier());
+                            }
 							synchro_all_indexes(merged);
 						}, array_of_words.length);
 		

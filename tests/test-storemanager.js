@@ -1,18 +1,34 @@
 module("StoreManager");
 
 function makeFakeStore(caps) {
+
+    function Index(name) {
+        "use strict";
+        this.name = name;
+    }
+
 	if (!(this instanceof makeFakeStore)) {
 		return new makeFakeStore(caps);
 	}
 	caps.setAvailable(true);
 	var result = function() {
-		this.open = function(caps, reqIndexArray, callback) {
-			callback(this);
+        this.indexes = {};
+		this.open = function(caps, reqIndexArray, callback, errorCallback) {
+            var ia = [];
+            for (var i=0; i<reqIndexArray.length; ++i) {
+                var index = new Index(reqIndexArray[i].name);
+                ia.push(index);
+                this.indexes[index.name] = index;
+            }
+			callback(ia);
 		};
 		this.close = function(callback) {
 			callback();
 		};
-	};
+        this.getIndex = function(name) {
+            return this.indexes[name];
+        }
+    };
 	result.getCapabilities = function() {
 		return caps;
 	}
@@ -23,18 +39,16 @@ function create_findstore_test(name, sequence, capabilities, expectedOffset) {
 
 	test("find_a_store_" + name, function() {
 		var manager = new fullproof.StoreManager(sequence);
-		expect(3);
+		expect(4);
 		QUnit.stop();
 		manager.addIndex(new fullproof.IndexRequest(name, capabilities, function(index,cb) {console.log("initializer"); cb(); }));
-		manager.openIndexes(function(indexes) {
-			console.log("indexes", indexes);
-			ok(indexes !== false);
-			ok(indexes.length == 1);
-			if (indexes && indexes.length>0) {
-				equal(indexes[0].storeName, sequence[expectedOffset].name);
-			} else {
-				ok(false);
-			}
+		manager.openIndexes(function(stores) {
+			console.log("indexes", stores);
+			ok(stores !== false);
+			ok(stores.length == 1);
+            var index = stores[0].getIndex(name);
+            ok(index);
+            equal(index.storeName, sequence[expectedOffset].name);
 			QUnit.start();
 		});
 	});

@@ -7,7 +7,7 @@ function init_store(store, capabilities, indexReqArray, indexName, injectScoredE
 				var index = store.getIndex(indexName);
 				index.clear(function() {
 					if (injectScoredEntryResultSet) {
-						var synchro_inject = fullproof.make_synchro_point(fullproof.make_callback_caller(callback, index), injectScoredEntryResultSet.getSize());
+						var synchro_inject = fullproof.make_synchro_point(fullproof.make_callback(callback, index), injectScoredEntryResultSet.getSize());
 						injectScoredEntryResultSet.forEach(function(el) {
 							index.inject(el.key, injectScoredEntryResultSet.useScore?new fullproof.ScoredElement(el.value, el.score):el.value, synchro_inject);
 						});

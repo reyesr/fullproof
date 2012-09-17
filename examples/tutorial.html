@@ -124,7 +124,7 @@
             initializer: initializer
         };
 
-        marioSearchEngine.open([index1, index2], fullproof.make_callback_caller(engineReady, true), fullproof.make_callback_caller(engineReady, false));
+        marioSearchEngine.open([index1, index2], fullproof.make_callback(engineReady, true), fullproof.make_callback(engineReady, false));
 
         /**
          * The seach function manages the terms lookup and result display

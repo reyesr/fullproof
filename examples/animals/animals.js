@@ -50,10 +50,8 @@ var Animals = (function(){
 					initializer: makeInitializer(makeProgressFunction(0.5,0.5)) 	
 			};
 
-			engine.addIndexes([index1, index2], function(res) {
-				engine.open(fullproof.make_callback_caller(callback, true), fullproof.make_callback_caller(callback, false));
-			});
-			
+            engine.open([index1, index2], fullproof.make_callback(callback, true), fullproof.make_callback(callback, false));
+
 		}, function(txt, file) { data = txt.split("\n"); }, 
 		 function() { console.log("ERROR");});		
 	}

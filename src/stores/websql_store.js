@@ -36,7 +36,7 @@ fullproof.store = fullproof.store||{};
 			} else {
 				callback(false);
 			}
-		}, fullproof.make_callback_caller(callback, false));
+		}, fullproof.make_callback(callback, false));
 	};
 	
 	function MetaData(store, callback, errorCallback) {
@@ -44,7 +44,7 @@ fullproof.store = fullproof.store||{};
 		var meta = this;
 		
 		this.createIndex = function(name, successCallback, errorCallback) {
-			var error = fullproof.make_callback_caller(errorCallback);
+			var error = fullproof.make_callback(errorCallback);
 			var tablename = meta.tablename;
 			store.db.transaction(function(tx) {
 				sql_table_exists_or_empty(tx, name, function(exists) {
@@ -54,7 +54,7 @@ fullproof.store = fullproof.store||{};
 										store.db.transaction(function(tx) {				
 											tx.executeSql("CREATE INDEX IF NOT EXISTS "+ name +"_indx ON " + name + " (id)", [], function() {
 												tx.executeSql("INSERT OR REPLACE INTO " + meta.tablename + " (id, initialized) VALUES (?,?)", [name, false], 
-														fullproof.make_callback_caller(successCallback, true), 
+														fullproof.make_callback(successCallback, true),
 														error);
 											}, error);
 										});
@@ -75,7 +75,7 @@ fullproof.store = fullproof.store||{};
 						result[line.id] = {name: line.id, initialized: line.initialized, ctime: line.ctime, version: line.version};
 					}
 					callback(result);
-				}, fullproof.make_callback_caller(callback, {}));
+				}, fullproof.make_callback(callback, {}));
 			});
 		};
 		
@@ -88,15 +88,15 @@ fullproof.store = fullproof.store||{};
 					} else {
 						callback(false)
 					}
-				}, fullproof.make_callback_caller(callback, false));
+				}, fullproof.make_callback(callback, false));
 			});
 		};
 		
 		this.setInitialized = function(tablename, value, callback) {
 			store.db.transaction(function(tx) {
 				tx.executeSql("INSERT OR REPLACE INTO " + meta.tablename + " (id, initialized) VALUES (?,?)", [tablename, value?"true":"false"],
-						fullproof.make_callback_caller(callback, true),
-						fullproof.make_callback_caller(callback, false));
+						fullproof.make_callback(callback, true),
+						fullproof.make_callback(callback, false));
 			});
 		};
 		
@@ -123,7 +123,7 @@ fullproof.store = fullproof.store||{};
 					var count = 0;
 					for (var k in data) { ++count; }
 					var synchro = fullproof.make_synchro_point(function() {
-						tx.executeSql("DROP TABLE IF EXISTS "+ meta.tablename, [], fullproof.make_callback_caller(errorCallback,true), fullproof.make_callback_caller(errorCallback,false));
+						tx.executeSql("DROP TABLE IF EXISTS "+ meta.tablename, [], fullproof.make_callback(errorCallback,true), fullproof.make_callback(errorCallback,false));
 					}, count);
 					for (var k in data) {
 						tx.executeSql("DROP TABLE IF EXISTS " + k);
@@ -136,7 +136,7 @@ fullproof.store = fullproof.store||{};
 			tx.executeSql("CREATE TABLE IF NOT EXISTS "+ meta.tablename +" (id VARCHAR(52) NOT NULL PRIMARY KEY, initialized, version, ctime)", [], 
 				function() {
 					callback(store);
-				}, fullproof.make_callback_caller(errorCallback,false))});
+				}, fullproof.make_callback(errorCallback,false))});
 	}
 
 	/**
@@ -199,7 +199,7 @@ fullproof.store = fullproof.store||{};
                                 fullproof.call_new_thread(function() {
                                     initializer(index, function() {
                                         index.opened = true;
-                                        self.meta.setInitialized(name, true, fullproof.make_callback_caller(callback, index));
+                                        self.meta.setInitialized(name, true, fullproof.make_callback(callback, index));
                                     });
                                 });
                             });
@@ -224,7 +224,7 @@ fullproof.store = fullproof.store||{};
 		store.opened = true;
 		store.meta = new MetaData(store, function(store) {
 				callback(store);
-			}, fullproof.make_callback_caller(callback,false));
+			}, fullproof.make_callback(callback,false));
 	};
 
 	
@@ -265,7 +265,7 @@ fullproof.store = fullproof.store||{};
 			tx.executeSql("DELETE FROM "+ self.tableName, [], function() {
 				self.store.meta.setInitialized(self.name, false, callback);	
 			}, function() {
-				fullproof.make_callback_caller(callback, false)();
+				fullproof.make_callback(callback, false)();
 			});
 			
 		});
@@ -275,9 +275,9 @@ fullproof.store = fullproof.store||{};
 		var self = this;
 		this.db.transaction(function(tx) {
 			if (value instanceof fullproof.ScoredElement) {
-				tx.executeSql("INSERT OR REPLACE INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [word, value.value, value.score], fullproof.make_callback_caller(callback, true), fullproof.make_callback_caller(callback, false));
+				tx.executeSql("INSERT OR REPLACE INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [word, value.value, value.score], fullproof.make_callback(callback, true), fullproof.make_callback(callback, false));
 			} else {
-				tx.executeSql("INSERT OR REPLACE INTO " + self.tableName + " (id,value) VALUES (?,?)", [word, value], fullproof.make_callback_caller(callback, true), fullproof.make_callback_caller(callback, false));
+				tx.executeSql("INSERT OR REPLACE INTO " + self.tableName + " (id,value) VALUES (?,?)", [word, value], fullproof.make_callback(callback, true), fullproof.make_callback(callback, false));
 			}
 		});
 	};

@@ -151,10 +151,11 @@ analyzer associated to the index that you feed with text and documents keys.
 # Starting it up
 
 Now everything is ready, we can just start the engine. This is just a call to `open()`, with three parameters: the array of index descriptors
-we defined above, a success callback, and an error callback. In this example, we just use the `fullproof.make_callback_caller`
+we defined above, a success callback, and an error callback. In this example, we just use the `fullproof.make_callback()` to reroute
+both calls to the `engineReady()` function, which will receive either true or false as argument.
 
 ~~~~ {#mycode .javascript}
-        marioSearchEngine.open([index1, index2], fullproof.make_callback_caller(engineReady, true), fullproof.make_callback_caller(engineReady, false));
+        marioSearchEngine.open([index1, index2], fullproof.make_callback(engineReady, true), fullproof.make_callback(engineReady, false));
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Callbacks
