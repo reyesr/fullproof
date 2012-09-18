@@ -36,7 +36,7 @@
 <div class="grid">
     <div id="results"></div>
 </div>
-
+<div id="debug"></div>
 
 <script type="text/javascript">
 
@@ -106,7 +106,12 @@ function engineReady(b) {
 }
 
 $(document).ready(function() {
+
+    // window.installInlineConsole("debug");
+
     var dbName = "colors";
+//    var onlyMem = [new fullproof.StoreDescriptor("memorystore", fullproof.store.IndexedDBStore)];
+    // onlyMem
     var colorSearchEngine = new fullproof.BooleanEngine();
 
     // Loads the color data from the csv, then creates the index descriptors and uses them to open the indexes
