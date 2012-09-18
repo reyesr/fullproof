@@ -11,7 +11,7 @@ application runs on a possibly disconnected mobile device.
 * Configurable and very easely extensible parsing and token normalization system
 * Easy to integrate, zero external dependency, ~100k minified
 
-Note the fullproof is NOT a document management system, it does only one thing: provide fulltext search to your application, it does not aim at storing documents or data.
+Note that fullproof is NOT a document management system, it does only one thing: provide fulltext search to your application, it does not aim at storing documents or data.
 
 ### Some Screenshots
 
