@@ -27,7 +27,8 @@ fullproof.store = fullproof.store||{};
 		this.comparatorObject = null;
 		this.useScore = false;
 		this.opened = false;
-	}
+
+    }
 
 	function sql_table_exists_or_empty(tx, tablename, callback) {
 		tx.executeSql("SELECT * FROM " + tablename + " LIMIT 1,0", [], function(tx,res) {
@@ -160,7 +161,11 @@ fullproof.store = fullproof.store||{};
 	};
 	
 	fullproof.store.WebSQLStore.getCapabilities = function () {
-        return new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(window.openDatabase).setUseScores([true, false]);
+        try {
+            return new fullproof.Capabilities().setStoreObjects(false).setVolatile(false).setAvailable(window.openDatabase).setUseScores([true, false]);
+        } catch (e) {
+            return new fullproof.Capabilities().setAvailable(false);
+        }
     };
 	fullproof.store.WebSQLStore.storeName = "WebsqlStore";
 
@@ -168,7 +173,7 @@ fullproof.store = fullproof.store||{};
 	fullproof.store.WebSQLStore.prototype.setOptions = function(params) {
 		this.dbSize = params.dbSize||this.dbSize;
 		this.dbName = params.dbName||this.dbName;
-		return this;
+        return this;
 	};
 
 	function openIndex(store, name, parameters, initializer, callback, errorCallback) {
@@ -214,37 +219,41 @@ fullproof.store = fullproof.store||{};
 
 	function openStore(store, parameters, callback) {
 		store.opened = false;
-		if (parameters.getDbName() !== undefined) {
+        if (parameters.getDbName() !== undefined) {
 			store.dbName = parameters.getDbName();
 		}
 		if (parameters.getDbSize() !== undefined) {
 			store.dbSize = parameters.getDbSize();
 		}
-		store.db = openDatabase(store.dbName, '1.0', 'javascript search engine', store.dbSize*10);
-		store.opened = true;
+        try {
+            store.db = openDatabase(store.dbName, '1.0', 'javascript search engine', store.dbSize);
+        } catch (e) {
+            console && console.log && console.log("websql: ERROR in openStore"+ e);
+        }
+        store.opened = true;
 		store.meta = new MetaData(store, function(store) {
-				callback(store);
+            callback(store);
 			}, fullproof.make_callback(callback,false));
 	};
 
 	
 	fullproof.store.WebSQLStore.prototype.open = function(caps, reqIndexArray, callback, errorCallback) {
-		var self = this;
+        var self = this;
 		var resultArray = [];
-		this.dbName = caps.getDbName() || this.dbName;
-		function chainOpenIndex(reqIndexes) {
+        this.dbName = caps.getDbName() || this.dbName;
+        function chainOpenIndex(reqIndexes) {
 			if (reqIndexes.length == 0) {
-				return callback(resultArray);
+                return callback(resultArray);
 			}
-			var requestIndex = reqIndexes.shift();
-			openIndex(self, requestIndex.name, requestIndex.capabilities, requestIndex.initializer, function(index) {
+            var requestIndex = reqIndexes.shift();
+            openIndex(self, requestIndex.name, requestIndex.capabilities, requestIndex.initializer, function(index) {
 				resultArray.push(index);
 				chainOpenIndex(reqIndexes);
 			});
 		}
-		
-		openStore(this, caps, function(store) {
-			var synchro = fullproof.make_synchro_point(callback, reqIndexArray.length);
+
+        openStore(this, caps, function(store) {
+            var synchro = fullproof.make_synchro_point(callback, reqIndexArray.length);
 			var consumedReqIndexes = [].concat(reqIndexArray);
 			chainOpenIndex([].concat(reqIndexArray));
 		});
@@ -292,7 +301,6 @@ fullproof.store = fullproof.store||{};
 		var bulk_synchro = fullproof.make_synchro_point(callback, undefined, true);
 		var totalSize = wordArray.length;
 		var processBulk = function(wArray, vArray) {
-            console.log("injectBulk iteration, rem:     " + vArray.length);
 			var curWords = wArray.splice(0, batchSize<wArray.length?batchSize:wArray.length);
 			var curValues = vArray.splice(0, batchSize<vArray.length?batchSize:vArray.length);
 			if (curWords.length == 0) {
@@ -312,7 +320,7 @@ fullproof.store = fullproof.store||{};
 					if (value instanceof fullproof.ScoredEntry) {
 						if (self.useScore) {
 							tx.executeSql("INSERT INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [curWords[i], value.value, value.score], synchronizer, function() {
-                                console.log("ERROR SQL");
+                                // do something...
                             });
 						} else {
 							tx.executeSql("INSERT INTO " + self.tableName + " (id,value) VALUES (?,?)", [curWords[i], value.value], synchronizer, synchronizer);

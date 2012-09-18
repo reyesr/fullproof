@@ -103,22 +103,28 @@ fullproof.StoreManager = function(storeDescriptors) {
 		
 		for (var k in this.indexesByStore) {
 			var store = new this.indexesByStore[k].ref();
-			var arr = this.indexesByStore[k];
+
+            var arr = this.indexesByStore[k];
 			var reqIndexes = [];
 			var storeCapabilities = new fullproof.Capabilities(); // .setDbName(this.dbName);
 			var size = 0;
 			for (var i=0; i<arr.length; ++i) {
 				var index = this.indexes[arr[i]];
 				reqIndexes.push(index.req);
-				size += Math.max(index.req.capabilities.getDbSize(),0);
+                if (index.req.capabilities &&  index.req.capabilities.getDbSize()) {
+				    size += Math.max(index.req.capabilities.getDbSize(),0);
+                }
 				if (index.req.capabilities && index.req.capabilities.getDbName()) {
 					storeCapabilities.setDbName(index.req.capabilities.getDbName());
 				}
 			}
-			storeCapabilities.setDbSize(size);
+            if (size != 0) {
+                storeCapabilities.setDbSize(size);
+            }
+
 			var self = this;
-			store.open(storeCapabilities, reqIndexes, function(indexArray) {
-				if (indexArray && indexArray.length>0) {
+            store.open(storeCapabilities, reqIndexes, function(indexArray) {
+                if (indexArray && indexArray.length>0) {
 					for (var i=0; i<indexArray.length; ++i) {
 						var index = indexArray[i];
 						index.parentStore = store;

@@ -40,13 +40,13 @@ var Animals = (function(){
 			var index1 = {
 					name: "normalindex",
 					analyzer: new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.normalizer.remove_duplicate_letters), 
-					capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName),
+					capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName).setDbSize(5*1024*1024),
 					initializer: makeInitializer(makeProgressFunction(0.5,0)) 	
 			};
 			var index2 = {
 					name: "stemmedindex",
 					analyzer: new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.english.metaphone), 
-					capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName),
+					capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName).setDbSize(5*1024*1024),
 					initializer: makeInitializer(makeProgressFunction(0.5,0.5)) 	
 			};
 

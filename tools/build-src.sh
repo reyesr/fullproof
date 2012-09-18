@@ -70,6 +70,8 @@ fi
 "$BUILDER" "$BUILD"/fullproof-french.js $BASE $UNICODE $FRENCH
 "$BUILDER" "$BUILD"/fullproof-all.js $BASE $UNICODE $ENGLISH $FRENCH
 
+cat $BASE $UNICODE $ENGLISH $FRENCH >"$BUILD"/fullproof-all-large.js
+
 ls -la "$BUILD"
 
 if [[ "$JSDOC" != "" ]] ; then

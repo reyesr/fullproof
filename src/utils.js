@@ -104,7 +104,7 @@ fullproof.make_synchro_point = function (callback, expected, debug, thrown_if_fa
 
             ++count;
             results.push(res);
-            if (debug && console.log) {
+            if (debug && console && console.log) {
                 console.log("synchro point " + (typeof debug == "string" ? debug + ": " : ": ") + count + " / " + expected);
             }
             if (count == expected) {
