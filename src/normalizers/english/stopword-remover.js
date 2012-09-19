@@ -81,7 +81,7 @@ var fullproof = (function(NAMESPACE) {
 	    "you're" : 1, "you've" : 1, "your" : 1, "yours" : 1, "yourself" : 1, "yourselves" : 1, "z" : 1, "zero" : 1 };
 
 	NAMESPACE.english.stopword_remover = function(word, callback) {
-		return NAMESPACE.filter_in_array(word, stopwords, callback);
+		return NAMESPACE.filter_in_object(word, stopwords, callback);
 	};
 	
 	return NAMESPACE;

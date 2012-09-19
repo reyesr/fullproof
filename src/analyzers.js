@@ -134,6 +134,15 @@ var fullproof = fullproof||{};
 
     fullproof.StandardAnalyzer.prototype = new fullproof.AbstractAnalyzer();
 
+    /**
+     * The ScoringAnalyzer is not unlike the StandardAnalyzer, except that is attaches a score to each token,
+     * related to its place in the text. This is a very naive implementation, and therefore the adjustement
+     * is tweaked to be very light: it simplistically says that the more a token is near the start of the text,
+     * the more relevant it is to the document. Although very simple, it follows the normally expected form
+     * of a text where the headers and titles come first, and should provide decent result. You can use
+     * this as a basis and make a ScoringAnalyzer adapted to your data.
+     * @constructor
+     */
 	fullproof.ScoringAnalyzer = function() {
 		// Stores the normalizers... (don't store arguments, as it contains more than an array) 
 		var normalizers = arguments_to_array(arguments);

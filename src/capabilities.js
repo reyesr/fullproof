@@ -17,7 +17,9 @@
 var fullproof = fullproof || {};
 
 /**
- * Represents a set of contraints applied to a store.
+ * Represents a set of contraints applied to an index or a store.
+ * The way this object is designed, you only have to set the properties that are meaningful for your
+ * requirement. Not setting a property means that any value is ok.
  * @constructor
  */
 fullproof.Capabilities = function() {
@@ -27,7 +29,11 @@ fullproof.Capabilities = function() {
 };
 
 /**
+ * Compares a value with a property of this Capabilities object.
+ * @param property a property name
+ * @param value the valued to be compared
  * @protected
+ * This should probably be made private or something
  */
 fullproof.Capabilities.prototype.matchValue = function (property, value) {
     if (value === undefined) {
@@ -136,7 +142,8 @@ fullproof.Capabilities.prototype.getScoreModifier = function () {
     return this.scoreModifier;
 };
 /**
- *
+ * Returns true if the current Capabilities object subsumes another Capabilities.
+ * @param otherCapabilities the Capabilities that must be subsumed by the current instance
  */
 fullproof.Capabilities.prototype.isCompatibleWith = function (otherCapabilities) {
     var objstore = this.matchValue(this.canStoreObjects, otherCapabilities.canStoreObjects);

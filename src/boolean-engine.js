@@ -30,12 +30,20 @@ fullproof.BooleanEngine = function (storeDescriptors) {
     this.initAbstractEngine(storeDescriptors); // Init from the prototype
 
     /**
-     * The working mode when gathering result sets.
+     * The working mode when gathering result sets. There's no really any good reason to change this,
+     * but whatever, you can if you want.
      */
     this.booleanMode = fullproof.BooleanEngine.CONST_MODE_INTERSECT;
 
-
-
+    /**
+     * Gather results for a query
+     * @param self the BooleanEngine instance it works with
+     * @param text the text query too look up in the indexes
+     * @param callback a function called when some results are found. Receives an argument: false if failed to get any result, or a resultset if some documents were found.
+     * @param arrayOfIndexUnits a mutable array of IndexUnits that is recursively consumed, and that contains references to the indexes to use.
+     * @param mode The search mode, normally this should be self.booleanMode
+     * @private
+     */
     function lookup(self, text, callback, arrayOfIndexUnits, mode) {
         if (arrayOfIndexUnits.length == 0) {
             return callback(false);
@@ -85,6 +93,11 @@ fullproof.BooleanEngine = function (storeDescriptors) {
         }));
     }
 
+    /**
+     * Looks up in the indexes for the query.
+     * @param text the query text to look up
+     * @param callback function called when the lookup is complete. It is passed false if nothing was found, or a ResultSet otherwise.
+     */
     this.lookup = function (text, callback) {
         this.lastResultIndex = 0;
         lookup(this, text, callback, this.getIndexUnits(), this.booleanMode);

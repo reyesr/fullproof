@@ -77,7 +77,7 @@ var fullproof = (function(NAMESPACE) {
 	    "vous-memes" : 1, "vu" : 1, "w" : 1, "x" : 1, "y" : 1, "z" : 1, "zut" : 1 };
 	
 	NAMESPACE.french.stopword_remover = function(word, callback) {
-		return NAMESPACE.filter_in_array(word, stopwords, callback);
+		return NAMESPACE.filter_in_object(word, stopwords, callback);
 	};
 	
 	return NAMESPACE;

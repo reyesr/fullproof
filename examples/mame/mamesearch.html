@@ -26,6 +26,7 @@
 <script type="text/javascript" src="../../src/stores/memory_store.js"></script>
 <script type="text/javascript" src="../../src/stores/websql_store.js"></script>
 <script type="text/javascript" src="../../src/stores/indexeddb_store.js"></script>
+<script type="text/javascript" src="../../src/debug/inlinelog.js"></script>
 <!-- END DEV SCRIPTS -->
 
 <script type="text/javascript" src="mamesearch.js"></script>
@@ -58,9 +59,12 @@
         <p/>This operation is only done once.
     </div>
 </div>
+<div id="debug"></div>
 <script type="text/javascript">
 
 $(document).ready(function() {
+
+    window.installInlineConsole("debug");
 
 	MameSearch.start(function(i) {
 		if (i) {

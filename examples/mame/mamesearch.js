@@ -7,11 +7,13 @@ var MameSearch = (function(){
 	function makeInitializer(progressCallback) {
 		return function(injector, callback) {
 			var synchro = fullproof.make_synchro_point(callback, data.length-1);
+            console.log("INITIALIZER starting");
 			var values = [];
 			for (var i=0;i<data.length; ++i) {
 				values.push(i);
 			}
-			injector.injectBulk(data, values, callback, progressCallback);
+            console.log("INITIALIZER injecting");
+            injector.injectBulk(data, values, callback, progressCallback);
 		}
 	}
 

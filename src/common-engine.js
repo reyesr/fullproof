@@ -23,6 +23,7 @@ var fullproof = fullproof || {};
  * @constructor
  * @param index the index to use when injecting
  * @param analyzer the analyzer to use to parse and normalize the text
+ * TODO: move this object in its own place or in utils
  */
 fullproof.TextInjector = function(index, analyzer) {
 	if (!(this instanceof fullproof.TextInjector)) {
