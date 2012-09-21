@@ -356,18 +356,18 @@ fullproof.store = fullproof.store||{};
 		this.db.transaction(function(tx) {
 			tx.executeSql("SELECT * FROM " + self.tableName + " WHERE id=? ORDER BY value ASC", [word],
 					function(tx,res) {
-						var result = [];
+                        var result = new fullproof.ResultSet(self.comparatorObject);
 						for (var i=0; i<res.rows.length; ++i) {
 							var item = res.rows.item(i);
 							if (item) {
 								if (item.score === null || item.score === undefined || item.score === false) {
-									result.push(item.value);
+									result.insert(item.value);
 								} else {
-									result.push(new fullproof.ScoredEntry(item.id, item.value, item.score));
+									result.insert(new fullproof.ScoredEntry(item.id, item.value, item.score));
 								}
 							}
 						}
-						callback(new fullproof.ResultSet(self.comparatorObject).setDataUnsafe(result));
+						callback(result);
 					}, 
 					function() {
 						callback(false);
