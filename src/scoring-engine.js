@@ -71,7 +71,19 @@ fullproof.ScoringEngine.prototype.lookup = function(text, callback) {
 	
 	var synchro_all_indexes = fullproof.make_synchro_point(function(array_of_resultset) {
 		var merged = merge_resultsets(array_of_resultset);
-		callback(merged);
+        merged.setComparatorObject({
+            lower_than: function(a,b) {
+                if (a.score != b.score) {
+                    return a.score > b.score;
+                } else {
+                    return a.value < b.value;
+                }
+            },
+            equals: function(a,b) {
+                return a.score === b.score && a.value === b.value;
+            }
+        });
+        callback(merged);
 	}, units.length);
 	
 	for (var i=0; i<units.length; ++i) {

@@ -108,7 +108,7 @@ var fullproof = fullproof || {};
 				if (index >= this.data.length) {
 					this.data.push(obj);
 					this.last_insert = obj
-				} else if (this.comparatorObject.equals(obj, this.data[index]) == false) {
+				} else if (this.comparatorObject.equals(obj, this.data[index]) === false) {
 					this.data.splice(index, 0, arguments[i]);
 					this.last_insert = undefined;
 				}

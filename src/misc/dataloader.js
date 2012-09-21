@@ -104,7 +104,7 @@ var fullproof = fullproof || {};
 //					return localStorage.getItem(configName + "_" + key);
 //				};
 //				this.remove = function(key) {
-//					localStorage.removeItem(configName + "_" + key);
+    //					localStorage.removeItem(configName + "_" + key);
 //				};
 //				return this;
 //			};
