@@ -70,7 +70,7 @@ fi
 "$BUILDER" "$BUILD"/fullproof-french.js $BASE $UNICODE $FRENCH
 "$BUILDER" "$BUILD"/fullproof-all.js $BASE $UNICODE $ENGLISH $FRENCH
 
-cat $BASE $UNICODE $ENGLISH $FRENCH >"$BUILD"/fullproof-all-large.js
+cat $BASE $UNICODE $ENGLISH $FRENCH >"$BUILD"/fullproof-all-debug.js
 
 ls -la "$BUILD"
 

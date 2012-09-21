@@ -25,3 +25,18 @@ else
     echo '[WARNING] jsdoc is not available, skipping' >&2
 fi
 
+RELEASENAME=fullproof-`date +%Y%m%d`
+RELEASEDIR="$BUILD"/"$RELEASENAME"
+mkdir -p  "$RELEASEDIR"
+cp -r "$BUILD"/js/ "$RELEASEDIR"/
+cp -r "$BUILD"/site/jsdocs "$RELEASEDIR"/
+cp -r "$BUILD"/site/jsdocs "$RELEASEDIR"/
+cp "$ROOT"/README.md "$RELEASEDIR"/
+cp "$ROOT"/LICENSE "$RELEASEDIR"/
+cp -r "$BUILD"/site/examples "$RELEASEDIR"
+
+ORGDIR=`pwd`
+cd "$BUILD"
+zip -r "$RELEASENAME".zip "$RELEASENAME"
+tar cvf "$RELEASENAME".tar "$RELEASENAME"
+gzip "$RELEASENAME".tar
