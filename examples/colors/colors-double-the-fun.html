@@ -42,9 +42,8 @@
 </div>
 <div class="grid splaining">
     <div style="margin-top: 1em;">
-        The BooleanEngine is a simple yet very effective boolean-set based search engine, specially when searching
-        terms in a list of items. The Colors Search Engine uses the metaphone algorithm as a spare index
-        when the exact terms typed in the input box are not found.
+     This page instanciates two search engines: one with fullproof.BooleanEngine, another with fullproof.ScoringEngine.
+     You can compare how both work and see which one fits your application best.
     </div>
     <div>Please try it by typing any terms that may be part of a color name.</div>
 </div>
@@ -58,8 +57,8 @@
     </div>
 </div>
 <div class="grid">
-    <div style="float:left; width: 50%;" id="results1"></div>
-    <div style="float:left; width: 50%;" id="results2"></div>
+    <div style="float:left; width: 50%;"><h2>Results from the BooleanEngine</h2><div id="results1"></div></div>
+    <div style="float:left; width: 50%;"><h2>Results from the ScoringEngine</h2><div id="results2"></div></div>
 </div>
 <div id="debug"></div>
 
