@@ -26,3 +26,14 @@ Fullproof is released under the terms of the Apache License, version 2.0, januar
 * Information can be found in the wiki: https://github.com/reyesr/fullproof/wiki
 * Bug reports and evolution requests can be reported at: https://github.com/reyesr/fullproof/issues
 
+##Contribute !
+
+You can help improve fullproof and fulltext research by creating new algorithms:
+
+- Tokenizers for specific formats and/or languages (html, pdf, epub, etc, or any language where tokenization have special rules)
+- New normalizers: Normalizers help improve drastically the quality of the search. The current token normalizers
+  for english (porter stemmer, metaphone, etc) are rather naive and can surely be enhanced. If you are a native
+  speaker for a non-english language, you can also help by providing normalizers adapted to your language.
+- More stores. Think you can optimize the current stores implementation ? Or create a new store ? Go ahead!
+
+You can fork fullproof at https://github.com/reyesr/fullproof
