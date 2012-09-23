@@ -300,37 +300,44 @@ fullproof.store = fullproof.store||{};
 		var transactionsExpected = wordArray.length / batchSize + (wordArray%batchSize>0?1:0);
 		var bulk_synchro = fullproof.make_synchro_point(callback, undefined, true);
 		var totalSize = wordArray.length;
-		var processBulk = function(wArray, vArray) {
-			var curWords = wArray.splice(0, batchSize<wArray.length?batchSize:wArray.length);
-			var curValues = vArray.splice(0, batchSize<vArray.length?batchSize:vArray.length);
-			if (curWords.length == 0) {
-				bulk_synchro(false);
-			}
+
+		var processBulk = function(wArray, vArray, offset) {
+//			var curWords = wArray.splice(0, batchSize<wArray.length?batchSize:wArray.length);
+//			var curValues = vArray.splice(0, batchSize<vArray.length?batchSize:vArray.length);
+//			if (curWords.length == 0) {
+//				bulk_synchro(false);
+//			}
+
+            if (offset >= wArray.length) {
+                fullproof.call_new_thread(callback, true);
+            }
+
+            var offsetEnd = Math.min(offset + batchSize, wArray.length);
 			if (progress) {
 				progress((totalSize - wArray.length)/totalSize);
 			}
 			
 			var synchronizer = fullproof.make_synchro_point(function() {
-				fullproof.call_new_thread(processBulk, wArray, vArray);
-			}, curWords.length);
+				fullproof.call_new_thread(processBulk, wArray, vArray, offsetEnd);
+			}, offsetEnd - offset);
 			
 			self.db.transaction(function(tx) {
-				for (var i=0; i<curWords.length; ++i) {
-					var value = curValues[i];
+				for (var i=offset, end=offsetEnd; i<end; ++i) {
+					var value = vArray[i];
 					if (value instanceof fullproof.ScoredEntry) {
 						if (self.useScore) {
-							tx.executeSql("INSERT INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [curWords[i], value.value, value.score], synchronizer, function() {
+							tx.executeSql("INSERT INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [wArray[i], value.value, value.score], synchronizer, function() {
                                 // do something...
                             });
 						} else {
-							tx.executeSql("INSERT INTO " + self.tableName + " (id,value) VALUES (?,?)", [curWords[i], value.value], synchronizer, synchronizer);
+							tx.executeSql("INSERT INTO " + self.tableName + " (id,value) VALUES (?,?)", [wArray[i], value.value], synchronizer, synchronizer);
 						}
 					} else {
 						if (self.useScore) {
-							tx.executeSql("INSERT INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [curWords[i], value, 1.0], synchronizer, synchronizer);
+							tx.executeSql("INSERT INTO " + self.tableName + " (id,value, score) VALUES (?,?,?)", [wArray[i], value, 1.0], synchronizer, synchronizer);
 						}
 						else {
-							tx.executeSql("INSERT INTO " + self.tableName + " (id,value) VALUES (?,?)", [curWords[i], value], 
+							tx.executeSql("INSERT INTO " + self.tableName + " (id,value) VALUES (?,?)", [wArray[i], value],
 									function() {
 								synchronizer();
 							}, function() {
@@ -342,7 +349,7 @@ fullproof.store = fullproof.store||{};
 			});
 		};
 		
-		processBulk(wordArray, valuesArray);
+		processBulk(wordArray, valuesArray, 0);
 		
 	};
 	
