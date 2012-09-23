@@ -1,0 +1,69 @@
+
+.testgroup {
+    border: 1px solid black;
+    margin-bottom: 6px;
+    background: #223344;
+    color: white;
+    min-height: 200px;
+}
+
+.testgroup .groupname {
+    font-weight: bold;
+    padding: 8px;
+    font-size: 1.1em;
+}
+
+.testgroup .groupname .desc {
+    font-size: 0.8em;
+    font-weight: normal;
+    font-style: italic;
+}
+
+.testgroup .testunit {
+    /*border: 1px solid black;*/
+    color: white;
+    font-size: 1.0em;
+    font-weight: bold;
+    width: 60%;
+}
+
+.testgroup .testunit .testcontainer {
+    padding: 8px;
+    margin-bottom: 2px;
+}
+
+.testgroup .test {
+}
+
+.test .result {
+    float: right;
+}
+
+#result .tests .status {
+    float: right;
+    width: 40%;
+    text-align: right;
+}
+
+.waiting {
+    background: #165895;
+}
+
+.passed {
+    background: #5294D1;
+}
+
+.running {
+    background: #7ABCF9;
+}
+
+.failed {
+    background: #C40233;
+}
+
+.testgroup .chart {
+    float: right;
+    width: 40%;
+    background: white;
+    height: 100%;
+}

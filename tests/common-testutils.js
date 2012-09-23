@@ -30,7 +30,7 @@ fullproof = (function(NAMESPACE) {
 	}
 	
 	NAMESPACE.tests.mkRandomString = function(size) {
-		result = "";
+		var result = "";
 		for (var i=0;i<size; ++i) {
 			result += String.fromCharCode(65+parseInt(Math.random()*26));
 		}
@@ -81,7 +81,14 @@ fullproof = (function(NAMESPACE) {
 		return result;
 	};
 
-	
+    NAMESPACE.tests.createAndOpenStore = function(indexName, storeRef, useScore, callback) {
+        var store = new storeRef();
+        var caps = new fullproof.Capabilities().setDbSize(1024*1024*10).setUseScores(useScore).setDbName("fullproofTests");
+        var analyzer = (useScore?new fullproof.ScoringAnalyzer():new fullproof.StandardAnalyzer());
+        var idx = new fullproof.IndexRequest(indexName, caps, false);
+        store.open(caps, [idx], fullproof.make_callback(callback, store), fullproof.make_callback(callback, false));
+    }
+
 	return NAMESPACE;
 
 })(fullproof);

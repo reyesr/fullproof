@@ -125,7 +125,7 @@ fullproof.store = fullproof.store||{};
 
 	MemoryStoreIndex.prototype.injectBulk = function(keyArray, valueArray, callback, progress) {
 		for (var i=0; i<keyArray.length && i<valueArray.length; ++i) {
-            if (i%1000 == 0 && progress) {
+            if (i%1000 === 0 && progress) {
                 progress(i / keyArray.length);
 
             }

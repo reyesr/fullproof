@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Javascript Search Engine : Stores testing</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+
+    <script type="text/javascript" src="../src/resultsets.js"></script>
+    <script type="text/javascript" src="../src/analyzers.js"></script>
+    <script type="text/javascript" src="../src/stores/memory_store.js"></script>
+    <script type="text/javascript" src="../src/stores/websql_store.js"></script>
+    <script type="text/javascript" src="../src/stores/indexeddb_store.js"></script>
+    <script type="text/javascript" src="../src/utils.js"></script>
+    <script type="text/javascript" src="../src/resultsets.js"></script>
+    <script type="text/javascript" src="../src/capabilities.js"></script>
+
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+    <script type="text/javascript" src="common-testutils.js"></script>
+    <script type="text/javascript" src="benchmark.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="benchmark.css" />
+
+    <style TYPE="text/css">
+
+        body {
+            width: 920px;
+            margin: auto;
+        }
+
+    </style>
+</head>
+<body>
+<h1>Stores benchmark</h1>
+<h3><div id="ua"></div></h3>
+<div id="charts"></div>
+<div id="result"></div>
+
+<script type="text/javascript">
+
+    var memoryStore = null;
+    var websqlStore = null;
+    var indexeddbStore = null;
+
+    var benchmark = new Benchmark($("#result"));
+
+    function addChart(groupName, data) {
+        var tests = benchmark.getForGroup(groupName);
+        var header = [];
+        if (data.length == 0) {
+            header.push("Group");
+            for (var i=0; i<tests.length; ++i) {
+                header.push(tests[i].name);
+            }
+            data.push(header);
+        }
+
+        var line = [];
+        line.push( groupName);
+        for (var i=0; i<tests.length; ++i) {
+            line.push(tests[i].result.time>=1?tests[i].result.time:1);
+        }
+        data.push(line);
+
+        return data;
+    }
+
+    function makeCharts() {
+        $("charts").html();
+        var groups = benchmark.getAvailableGroups();
+        var cdata = [];
+        for (var i=0; i<groups.length; ++i) {
+            addChart(groups[i], cdata);
+        }
+        var data = google.visualization.arrayToDataTable(cdata);
+        var options = {
+            title: "Benchmark",
+            hAxis: {title: 'Tests', titleTextStyle: {color: 'red'}},
+            vAxis: {title: "ms" }
+        };
+        var $domEl = $("<div></div>");
+        $domEl.appendTo($("#charts"));
+        var chart = new google.visualization.ColumnChart($domEl.get(0));
+        chart.draw(data, options);
+    }
+
+    function createTest(group, stores, maker, desc) {
+        for (var i=0; i<stores.length; ++i) {
+            benchmark.addTest(group, stores[i].storeName, maker.call(this, stores[i]), desc);
+        }
+    }
+
+    function startTest() {
+
+        var injectCount = 500;
+
+        var indexes = [];
+        if (websqlStore) {
+            indexes.push(websqlStore);
+        }
+        if (indexeddbStore) {
+            indexes.push(indexeddbStore);
+        }
+        if (memoryStore) {
+            indexes.push(memoryStore);
+        }
+
+        createTest("Clear", indexes, function (store) { return mkTestClearEmpty(store); });
+//        createTest("Lookup", indexes, function (store) { return mkTestLookup(store, injectCount, 8, 8); }, "Injecting " + injectCount + " 8-byte elements, one by one");
+        createTest("Inject (small)", indexes, function (store) { return mkTestInject(store, injectCount, 8, 8); }, "Injecting " + injectCount + " 8-byte elements, one by one");
+        createTest("Inject (large)", indexes, function (store) { return mkTestInject(store, injectCount, 8, 512); }, "Injecting " + injectCount + " 512-byte elements, one by one");
+        createTest("InjectBulk (small)", indexes, function (store) { return mkTestInjectBulk(store, injectCount, 8, 8); }, "Injecting " + injectCount + " 8-byte elements, in bulk");
+        createTest("InjectBulk (large)", indexes, function (store) { return mkTestInjectBulk(store, injectCount, 8, 512); }, "Injecting " + injectCount + " 512-byte elements, in bulk");
+
+        benchmark.start(function() {
+            makeCharts();
+        });
+    }
+
+    google.load("visualization", "1", {packages:["corechart"]});
+
+    var drawChartSynchronizer = fullproof.make_synchro_point(startTest, 2);
+    var storeSync = fullproof.make_synchro_point(drawChartSynchronizer, 3);
+    google.setOnLoadCallback(drawChartSynchronizer);
+
+    function mkTestClearEmpty(store) {
+        return function(testManager) {
+            var index = store.getIndex("main");
+            if (index) {
+                testManager.startTimer();
+                index.clear(function(b) {
+                    testManager.stopTimer();
+                    testManager.testComplete(true);
+                });
+            } else {
+                testManager.testComplete(false);
+            }
+        }
+    }
+
+    function mkTestInject(store, count, keySize, valueSize) {
+        return function(testManager) {
+            var index = store.getIndex("main");
+            if (index) {
+                index.clear(function(b) {
+                    var keys = [];
+                    var values = [];
+                    for (var i=0; i<count; ++i) {
+                        keys.push(fullproof.tests.mkRandomString(keySize));
+                        values.push(fullproof.tests.mkRandomString(valueSize));
+                    }
+
+                    var synchronizer = fullproof.make_synchro_point(function(res) {
+                        testManager.stopTimer();
+                        testManager.testComplete(true);
+                    }, count);
+                    testManager.startTimer();
+                    for (var i=0; i<count; ++i) {
+                        index.inject(keys[i], values[i], synchronizer);
+                    }
+                });
+            } else {
+                testManager.testComplete(false);
+            }
+        }
+    }
+
+    function mkTestInjectBulk(store, count, keySize, valueSize) {
+        return function(testManager) {
+            var index = store.getIndex("main");
+            if (index) {
+                index.clear(function(b) {
+                    var keys = [];
+                    var values = [];
+                    for (var i=0; i<count; ++i) {
+                        keys.push(fullproof.tests.mkRandomString(keySize));
+                        values.push(fullproof.tests.mkRandomString(valueSize));
+                    }
+
+                    testManager.startTimer();
+                    index.injectBulk(keys, values, function() {
+                        testManager.stopTimer();
+                        testManager.testComplete(true);
+                    });
+                });
+            } else {
+                testManager.testComplete(false);
+            }
+        }
+    }
+
+    function mkTestLookup(store, count, keySize, valueSize) {
+        return function(testManager) {
+            var index = store.getIndex("main");
+            if (index) {
+                index.clear(function(b) {
+                    var keys = [];
+                    var values = [];
+                    for (var i=0; i<count; ++i) {
+                        keys.push(fullproof.tests.mkRandomString(keySize));
+                        values.push(fullproof.tests.mkRandomString(valueSize));
+                    }
+                    index.injectBulk(keys, values, function() {
+
+                        function readAndConsume(keyArr, valueArr, offset) {
+                            if (offset >= keyArr.length) {
+                                testManager.testComplete(true);
+                            } else {
+                                index.lookup(keyArr[offset], function(val) {
+                                    if (val === false || val !== valueArr[offset]) {
+                                        testManager.stopTimer();
+                                        testManager.testComplete(false);
+                                    } else {
+                                        readAndConsume(keyArr, valueArr, offset+1);
+                                    }
+                                });
+                            }
+                        }
+
+                        readAndConsume(keys, values, 0);
+                    });
+                });
+            } else {
+                testManager.testComplete(false);
+            }
+        }
+    }
+
+    $(document).ready(function() {
+
+        $("#ua").html(navigator.userAgent);
+
+        if (fullproof.store.MemoryStore.getCapabilities().isAvailable) {
+            fullproof.tests.createAndOpenStore("main", fullproof.store.MemoryStore, false, function(store) {
+                memoryStore = store;
+                store.storeName = "Memory";
+                storeSync();
+            });
+        } else {
+            storeSync();
+        }
+
+        if (fullproof.store.WebSQLStore.getCapabilities().isAvailable) {
+                fullproof.tests.createAndOpenStore("main", fullproof.store.WebSQLStore, false, function(store) {
+                websqlStore = store;
+                store.storeName = "WebSQL";
+                storeSync();
+            });
+        } else {
+            storeSync();
+        }
+
+        if (fullproof.store.IndexedDBStore.getCapabilities().isAvailable) {
+            fullproof.tests.createAndOpenStore("main", fullproof.store.IndexedDBStore, false, function(store) {
+                indexeddbStore = store;
+                store.storeName = "IndexedDB";
+                storeSync();
+            });
+        } else {
+            storeSync();
+        }
+    });
+
+    </script>
+
+    </body>
+</html>
