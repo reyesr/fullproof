@@ -313,8 +313,8 @@ fullproof.store = fullproof.store||{};
             }
 
             var offsetEnd = Math.min(offset + batchSize, wArray.length);
-			if (progress) {
-				progress((totalSize - wArray.length)/totalSize);
+			if (progress && totalSize) {
+				progress(offset/totalSize);
 			}
 			
 			var synchronizer = fullproof.make_synchro_point(function() {
