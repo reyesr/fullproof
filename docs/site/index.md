@@ -29,7 +29,7 @@ A few screenshots from the examples.
 ### Want more information ?
 
 * Try the samples
-    * Colors : [search colors by name](examples/colors/colors.html) using a BooleanEngine hooked on metaphone
+    * Colors : [search colors by name](examples/colors/colors.html) using a BooleanEngine hooked on metaphone. You can also [double the fun](examples/colors/colors-double-the-fun.html) by using both BooleanEngine and ScoringEngine on the same color database.
     * Animal Species: [search US animal species](examples/animals/animals.html), uses the fullproof BooleanEngine
     * Mame: [search the huuuge MAME ROM list](examples/mame/mamesearch.html) using the fullproof ScoringEngine
 * [Read the tutorial](tutorial.html)
