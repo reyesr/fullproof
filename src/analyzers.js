@@ -104,7 +104,14 @@ var fullproof = fullproof||{};
 		 * @expose
 		 */
 		this.sendFalseWhenComplete = true;
-		
+
+        function applyNormalizers(word, offset, callback) {
+            if (offset>=normalizers.length) {
+                return callback(word);
+            }
+            return normalizers[offset](word, offset>=normalizers.length?callback:function applyNormalizerRecCall(w) { if (w) applyNormalizers(w, offset+1, callback); });
+        }
+
 		/**
          * The main method: cuts the text in words, calls the normalizers on each word,
          * then calls the callback with each non empty word.
@@ -114,19 +121,10 @@ var fullproof = fullproof||{};
         this.parse = function (text, callback) {
             var self = this;
             simple_parser(text, function (word) {
-                if (typeof word == "string") {
-                    word = word.trim();
-                    if (word != "") {
-                        for (var i = 0; i < normalizers.length; ++i) {
-                            word = normalizers[i](word);
-                        }
-                    }
-
-                    if (callback && word && word != "") {
-                        callback(word);
-                    }
+                if (typeof word === "string") {
+                    applyNormalizers(word.trim(), 0, callback);
                 } else if (word === false && self.sendFalseWhenComplete && callback) {
-                    callback(word);
+                    callback(false);
                 }
             });
         };
