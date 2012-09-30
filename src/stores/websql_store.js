@@ -17,7 +17,7 @@
 var fullproof = fullproof || {};
 fullproof.store = fullproof.store||{};
 
-(function() {
+(function(window) {
 "use strict";
 
 	function WebSQLStoreIndex() {
@@ -382,4 +382,4 @@ fullproof.store = fullproof.store||{};
 		});
 	};
 	
-})();
+})(window || {});
