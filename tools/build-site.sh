@@ -18,7 +18,6 @@ set +e
 which pandoc
 case $? in
     0)
-        set +e
         for file in "$SITEROOT"/*.md
         do
             TARGETNAME=`basename "$file"`
