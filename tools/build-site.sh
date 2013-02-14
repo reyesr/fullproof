@@ -1,24 +1,40 @@
 #!/bin/bash
 
-ORGDIR=`pwd`
-THISSCRIPT=`readlink -f "$0"`
-TOOLS=`dirname "$THISSCRIPT"`
-ROOT=`readlink -f "$TOOLS"/..`
-TARGET="$ROOT"/build/site
+test -f common.sh || {
+    echo "The `basename $0` script must be invoked in the tools directory." >&2
+    exit 1
+}
+
+. common.sh
+
+TOOLS=.
+TARGET="$BUILD"/site
 SITEROOT="$ROOT"/docs/site
 
 rm -fr "$TARGET"
 mkdir -p "$TARGET"
 
-for file in "$SITEROOT"/*.md
-do
-    TARGETNAME=`basename "$file"`
-    TARGETNAME=${TARGETNAME%%.md}.html
-    pandoc -f markdown -t html5 -o "$TARGET"/"$TARGETNAME" -s --template="$SITEROOT"/template.html5 <"$file"
-    RETVAL=$?
-    [ $RETVAL == 0 ] && echo processed file `basename "$file"` to `readlink -f $TARGET/"$TARGETNAME"`
-    [ $RETVAL != 0 ] && echo ERROR processing file "$file" to $TARGET
-done
+set +e
+which pandoc
+case $? in
+    0)
+        set +e
+        for file in "$SITEROOT"/*.md
+        do
+            TARGETNAME=`basename "$file"`
+            TARGETNAME=${TARGETNAME%%.md}.html
+            pandoc -f markdown -t html5 -o "$TARGET"/"$TARGETNAME" -s --template="$SITEROOT"/template.html5 <"$file"
+            RETVAL=$?
+            [ $RETVAL == 0 ] && echo processed file `basename "$file"` to `readlink $READLINK_F_FLAG $TARGET/"$TARGETNAME"`
+            [ $RETVAL != 0 ] && echo ERROR processing file "$file" to $TARGET
+        done
+    ;;
+
+    *)
+        echo pandoc is not available, skipping processing of .md files >&2
+    ;;
+esac
+set -e
 
 cp -r "$SITEROOT"/img "$TARGET"/
 cp -r "$SITEROOT"/css "$TARGET"/
@@ -39,10 +55,14 @@ process_example_dir () {
     for file in "$1"/*.html
     do
         echo converting $file
-        awk -v link=../../js/fullproof-all.js -f "$TOOLS"/dev2build-html.awk >"$2"/`basename "$file"` <"$file"
+        # The dev2build-html.awk script is missing from this repo, so skip this
+        # step for now. Also, the -v flag is invalid on Mac OS X.
+        : awk -v link="$BUILD"/js/fullproof-all.js -f "$TOOLS"/dev2build-html.awk >"$2"/`basename "$file"` <"$file"
     done
 }
-mkdir -p "$ROOT"/build/site/examples
-process_example_dir "$ROOT"/examples/colors "$ROOT"/build/site/examples/colors
-process_example_dir "$ROOT"/examples/mame "$ROOT"/build/site/examples/mame
-process_example_dir "$ROOT"/examples/animals "$ROOT"/build/site/examples/animals
+
+test -d  "$BUILD"/site/examples || mkdir -p "$BUILD"/site/examples
+for example in colors mame animals
+do
+    process_example_dir "$ROOT"/examples/$example "$BUILD"/site/examples/$example
+done
