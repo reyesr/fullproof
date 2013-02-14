@@ -60,7 +60,7 @@ process_example_dir () {
     done
 }
 
-test -d  "$BUILD"/site/examples || mkdir -p "$BUILD"/site/examples
+test -d "$BUILD"/site/examples || mkdir -p "$BUILD"/site/examples
 for example in colors mame animals
 do
     process_example_dir "$ROOT"/examples/$example "$BUILD"/site/examples/$example
