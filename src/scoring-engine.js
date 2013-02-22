@@ -48,7 +48,7 @@ fullproof.ScoringEngine.prototype.checkCapabilities = function (capabilities, an
 };
 
 fullproof.ScoringEngine.prototype.lookup = function(text, callback) {
-	
+
 	var units = this.getIndexUnits();
 
     function applyScoreModifier(resultset, modifier) {
@@ -68,7 +68,7 @@ fullproof.ScoringEngine.prototype.lookup = function(text, callback) {
 			return set;
 		}
 	}
-	
+
 	var synchro_all_indexes = fullproof.make_synchro_point(function(array_of_resultset) {
 		var merged = merge_resultsets(array_of_resultset);
         merged.setComparatorObject({
@@ -85,13 +85,13 @@ fullproof.ScoringEngine.prototype.lookup = function(text, callback) {
         });
         callback(merged);
 	}, units.length);
-	
+
 	for (var i=0; i<units.length; ++i) {
 		var unit = units[i];
 		unit.analyzer.parse(text, fullproof.make_synchro_point(function(array_of_words) {
 			if (array_of_words) {
 					if (array_of_words.length == 0) {
-						callback(new fullproof.ResultSet(store.caps.getComparatorObject()));
+						callback(new fullproof.ResultSet(unit.capabilities.comparatorObject));
 					} else {
 						var lookup_synchro = fullproof.make_synchro_point(function(rset_array) {
 							var merged = merge_resultsets(rset_array, unit);
@@ -100,7 +100,7 @@ fullproof.ScoringEngine.prototype.lookup = function(text, callback) {
                             }
 							synchro_all_indexes(merged);
 						}, array_of_words.length);
-		
+
 						for (var i=0; i<array_of_words.length; ++i) {
 							unit.index.lookup(array_of_words[i].key, lookup_synchro);
 						}
