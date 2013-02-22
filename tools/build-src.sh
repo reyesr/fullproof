@@ -9,11 +9,15 @@
 # url to make a call to the web service.
 #
 # To customize your distribution, just add a new distribution with your own files.
-#
-ROOT=`dirname "$0"`/..
-ROOT=`readlink -e "$ROOT"`
-BUILD="$ROOT"/build/js
 
+test -f common.sh || {
+    echo "The `basename $0` script must be invoked in the tools directory." >&2
+    exit 1
+}
+
+. common.sh
+
+BUILD="$BUILD"/js
 BASE="$ROOT/src/*.js  $ROOT/src/stores/*.js $ROOT/src/misc/*.js"
 UNICODE="$ROOT/src/unicode/categ_letters_numbers.js $ROOT/src/unicode/normalizer_lowercase_nomark.js $ROOT/src/unicode/unicode.js"
 ENGLISH=$ROOT/src/normalizers/english/*.js
@@ -46,7 +50,7 @@ build_version_online ()
 {
 	TARGET="$1"
 	shift
-	local TEMPFILE=`mktemp`
+	local TEMPFILE=`mktemp $MKTEMP_ARGS`
 	local JSOPT=
 	while (( "$#" )); do
 		JSOPT="$JSOPT --js $1"
