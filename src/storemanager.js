@@ -19,6 +19,8 @@ var fullproof = fullproof || {};
 /**
  * A descriptor for a store.
  * @constructor
+ * @param name the public name for the store. Just needs to be different from others.
+ * @param ref a reference to a fullproof.store.X function
  */
 fullproof.StoreDescriptor = function(name, ref) {
 	if (!(this instanceof fullproof.StoreDescriptor)) {
@@ -31,7 +33,7 @@ fullproof.StoreDescriptor = function(name, ref) {
 /**
  * A StoreManager finds and instanciates stores
  * @constructor
- * @param {Array.fullproof.StoreDescriptor} storeDescriptors an array of {fullproof.StoreDescriptor} instances.
+ * @param {Array.fullproof.StoreDescriptor} storeDescriptors an array of {fullproof.StoreDescriptor} instances. Just leave undefined to use the default stores.
  */
 fullproof.StoreManager = function(storeDescriptors) {
 	
