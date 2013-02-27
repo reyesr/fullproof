@@ -64,8 +64,9 @@ var fullproof = (function(NAMESPACE) {
         var mgr1 = "^(" + C + ")?" + V + C + V + C;       // [C]VCVC... is m>1
         var s_v   = "^(" + C + ")?" + v;                   // vowel in stem
 
-        return function(word) {
-	        
+        return function(word, callback) {
+	        word = word.toLowerCase();
+
 	        var stem;
 	        var suffix;
 	        var firstch;
@@ -194,7 +195,7 @@ var fullproof = (function(NAMESPACE) {
 	                w = firstch.toLowerCase() + w.substr(1);
 	        }
 	
-	        return w;
+	        return callback?callback(w):w;
         }
 	})();
 

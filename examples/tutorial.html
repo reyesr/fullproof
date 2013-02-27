@@ -114,13 +114,13 @@
         var index1 = {
             name: "normalindex",
             analyzer: new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.normalizer.remove_duplicate_letters),
-            capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName),
+            capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName).setDbSize(1*1024*1024),
             initializer: initializer
         };
         var index2 = {
             name: "stemmedindex",
             analyzer: new fullproof.StandardAnalyzer(fullproof.normalizer.to_lowercase_nomark, fullproof.english.metaphone),
-            capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName),
+            capabilities: new fullproof.Capabilities().setStoreObjects(false).setUseScores(false).setDbName(dbName).setDbSize(1*1024*1024),
             initializer: initializer
         };
 
@@ -138,7 +138,7 @@
                 if (resultset && resultset.getSize()) {
                     var rsize = resultset.getSize();
                     result = "<h1>Found " + rsize + " character"+(rsize>1?"s":"")+" matching your request.</h1>";
-                    result += "<table><tr><th>Name</th><th>Role</th></tr>"
+                    result += "<table><tr><th>Name</th><th>Role</th></tr>";
                     resultset.forEach(function(e) {
                         var c = marioData[e];
                         result += "<tr><td style='font-weight: bold;'>"+ c.name+"</td>";

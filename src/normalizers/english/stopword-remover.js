@@ -77,11 +77,11 @@ var fullproof = (function(NAMESPACE) {
 	    "wherein" : 1, "whereupon" : 1, "wherever" : 1, "whether" : 1, "which" : 1, "while" : 1, "whither" : 1,
 	    "who" : 1, "who's" : 1, "whoever" : 1, "whole" : 1, "whom" : 1, "whose" : 1, "why" : 1, "will" : 1,
 	    "willing" : 1, "wish" : 1, "with" : 1, "within" : 1, "without" : 1, "won't" : 1, "wonder" : 1, "would" : 1,
-	    "would" : 1, "wouldn't" : 1, "x" : 1, "y" : 1, "yes" : 1, "yet" : 1, "you" : 1, "you'd" : 1, "you'll" : 1,
+	    "wouldn't" : 1, "x" : 1, "y" : 1, "yes" : 1, "yet" : 1, "you" : 1, "you'd" : 1, "you'll" : 1,
 	    "you're" : 1, "you've" : 1, "your" : 1, "yours" : 1, "yourself" : 1, "yourselves" : 1, "z" : 1, "zero" : 1 };
 
 	NAMESPACE.english.stopword_remover = function(word, callback) {
-		return NAMESPACE.filter_in_object(word, stopwords, callback);
+		return NAMESPACE.normalizer.filter_in_object(word, stopwords, callback);
 	};
 	
 	return NAMESPACE;

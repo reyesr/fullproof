@@ -73,3 +73,29 @@ test("scoring analyzer", function() {
 	});
 	stda.parse("this is a test longer than the previous one, but not that long for a test though", sync);
 });
+
+function make_normalizer_test(name, normalizerRef, input, expected) {
+    test(name + " " + input + " to " + expected, function() {
+        expect(2);
+        var test1 = normalizerRef(input);
+        equal(test1, expected);
+        QUnit.stop();
+        normalizerRef(input, function(result) {
+            equal(result, expected);
+            QUnit.start();
+        });
+    });
+}
+
+make_normalizer_test("english metaphone", fullproof.english.metaphone, "Absolutly", "ABSLTL");
+make_normalizer_test("english metaphone", fullproof.english.metaphone, "Indications", "INTKXNS");
+make_normalizer_test("english metaphone", fullproof.english.metaphone, "John", "JN");
+
+make_normalizer_test("english porter-stemmer", fullproof.english.porter_stemmer, "ABSOLUTLY", "absolutli");
+make_normalizer_test("english porter-stemmer", fullproof.english.porter_stemmer, "Indications", "indic");
+make_normalizer_test("english porter-stemmer", fullproof.english.porter_stemmer, "JOHN", "john");
+
+make_normalizer_test("english stopwords", fullproof.english.stopword_remover, "JOHN", "JOHN");
+make_normalizer_test("english stopwords", fullproof.english.stopword_remover, "so", false);
+make_normalizer_test("english stopwords", fullproof.english.stopword_remover, "is", false);
+make_normalizer_test("english stopwords", fullproof.english.stopword_remover, "valid", "valid");

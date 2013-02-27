@@ -26,148 +26,153 @@ var fullproof = (function(NAMESPACE) {
 	/*
 	 * Borrowed from https://github.com/NaturalNode/natural/blob/master/lib/natural/phonetics/metaphone.js
 	 */
-	NAMESPACE.english.metaphone = (function(){
-		"use strict";
 
-		function dedup(token) {
-		    return token.replace(/([^c])\1/g, '$1');
-		}
+    NAMESPACE.english.metaphone_make = function(maxLength) {
+        "use strict";
 
-		function dropInitialLetters(token) {
-		    if(token.match(/^(kn|gn|pn|ae|wr)/))
-		        return token.substr(1, token.length - 1);
-		        
-		    return token;
-		}
+        function dedup(token) {
+            return token.replace(/([^c])\1/g, '$1');
+        }
 
-		function dropBafterMAtEnd(token) {
-		    return token.replace(/mb$/, 'm');
-		}
+        function dropInitialLetters(token) {
+            if(token.match(/^(kn|gn|pn|ae|wr)/))
+                return token.substr(1, token.length - 1);
 
-		function cTransform(token) {
-		    token = token.replace(/([^s]|^)(c)(h)/g, '$1x$3').trim();
-		    token = token.replace(/cia/g, 'xia');
-		    token = token.replace(/c(i|e|y)/g, 's$1');
-		    token = token.replace(/c/g, 'k'); 
-		    
-		    return token;
-		}
+            return token;
+        }
 
-		function dTransform(token) {
-		    token = token.replace(/d(ge|gy|gi)/g, 'j$1');
-		    token = token.replace(/d/g, 't');
-		    
-		    return token;
-		}
+        function dropBafterMAtEnd(token) {
+            return token.replace(/mb$/, 'm');
+        }
 
-		function dropG(token) {
-		    token = token.replace(/gh(^$|[^aeiou])/g, 'h$1');
-		    token = token.replace(/g(n|ned)$/g, '$1');    
-		    
-		    return token;
-		}
+        function cTransform(token) {
+            token = token.replace(/([^s]|^)(c)(h)/g, '$1x$3').trim();
+            token = token.replace(/cia/g, 'xia');
+            token = token.replace(/c(i|e|y)/g, 's$1');
+            token = token.replace(/c/g, 'k');
 
-		function transformG(token) {
-		    token = token.replace(/([^g]|^)(g)(i|e|y)/g, '$1j$3');
-		    token = token.replace(/gg/g, 'g');
-		    token = token.replace(/g/g, 'k');    
-		    
-		    return token;
-		}
+            return token;
+        }
 
-		function dropH(token) {
-		    return token.replace(/([aeiou])h([^aeiou])/g, '$1$2');
-		}
+        function dTransform(token) {
+            token = token.replace(/d(ge|gy|gi)/g, 'j$1');
+            token = token.replace(/d/g, 't');
 
-		function transformCK(token) {
-		    return token.replace(/ck/g, 'k');
-		}
-		function transformPH(token) {
-		    return token.replace(/ph/g, 'f');
-		}
+            return token;
+        }
 
-		function transformQ(token) {
-		    return token.replace(/q/g, 'k');
-		}
+        function dropG(token) {
+            token = token.replace(/gh(^$|[^aeiou])/g, 'h$1');
+            token = token.replace(/g(n|ned)$/g, '$1');
 
-		function transformS(token) {
-		    return token.replace(/s(h|io|ia)/g, 'x$1');
-		}
+            return token;
+        }
 
-		function transformT(token) {
-		    token = token.replace(/t(ia|io)/g, 'x$1');
-		    token = token.replace(/th/, '0');
-		    
-		    return token;
-		}
+        function transformG(token) {
+            token = token.replace(/([^g]|^)(g)(i|e|y)/g, '$1j$3');
+            token = token.replace(/gg/g, 'g');
+            token = token.replace(/g/g, 'k');
 
-		function dropT(token) {
-		    return token.replace(/tch/g, 'ch');
-		}
+            return token;
+        }
 
-		function transformV(token) {
-		    return token.replace(/v/g, 'f');
-		}
+        function dropH(token) {
+            return token.replace(/([aeiou])h([^aeiou])/g, '$1$2');
+        }
 
-		function transformWH(token) {
-		    return token.replace(/^wh/, 'w');
-		}
+        function transformCK(token) {
+            return token.replace(/ck/g, 'k');
+        }
+        function transformPH(token) {
+            return token.replace(/ph/g, 'f');
+        }
 
-		function dropW(token) {
-		    return token.replace(/w([^aeiou]|$)/g, '$1');
-		}
+        function transformQ(token) {
+            return token.replace(/q/g, 'k');
+        }
 
-		function transformX(token) {
-		    token = token.replace(/^x/, 's');
-		    token = token.replace(/x/g, 'ks');
-		    return token;
-		}
+        function transformS(token) {
+            return token.replace(/s(h|io|ia)/g, 'x$1');
+        }
 
-		function dropY(token) {
-		    return token.replace(/y([^aeiou]|$)/g, '$1');
-		}
+        function transformT(token) {
+            token = token.replace(/t(ia|io)/g, 'x$1');
+            token = token.replace(/th/, '0');
 
-		function transformZ(token) {
-		    return token.replace(/z/, 's');
-		}
+            return token;
+        }
 
-		function dropVowels(token) {
-		    return token.charAt(0) + token.substr(1, token.length).replace(/[aeiou]/g, '');
-		}
+        function dropT(token) {
+            return token.replace(/tch/g, 'ch');
+        }
 
-		return function(token, maxLength) {
-		    maxLength = maxLength || 32;
-		    token = token.toLowerCase();
-		    token = dedup(token);
-		    token = dropInitialLetters(token);
-		    token = dropBafterMAtEnd(token);
-		    token = transformCK(token);
-		    token = cTransform(token);
-		    token = dTransform(token);
-		    token = dropG(token);
-		    token = transformG(token);
-		    token = dropH(token);
-		    token = transformPH(token);
-		    token = transformQ(token);
-		    token = transformS(token);
-		    token = transformX(token);    
-		    token = transformT(token);
-		    token = dropT(token);
-		    token = transformV(token);
-		    token = transformWH(token);
-		    token = dropW(token);
-		    token = dropY(token);
-		    token = transformZ(token);
-		    token = dropVowels(token);
-		    
-		    token.toUpperCase();
-		    if(token.length >= maxLength)
-		        token = token.substring(0, maxLength);        
+        function transformV(token) {
+            return token.replace(/v/g, 'f');
+        }
 
-		    return token.toUpperCase();
-		};
-		
-	})();
-	return NAMESPACE;
+        function transformWH(token) {
+            return token.replace(/^wh/, 'w');
+        }
+
+        function dropW(token) {
+            return token.replace(/w([^aeiou]|$)/g, '$1');
+        }
+
+        function transformX(token) {
+            token = token.replace(/^x/, 's');
+            token = token.replace(/x/g, 'ks');
+            return token;
+        }
+
+        function dropY(token) {
+            return token.replace(/y([^aeiou]|$)/g, '$1');
+        }
+
+        function transformZ(token) {
+            return token.replace(/z/, 's');
+        }
+
+        function dropVowels(token) {
+            return token.charAt(0) + token.substr(1, token.length).replace(/[aeiou]/g, '');
+        }
+
+        return function(token, callback) {
+            maxLength = maxLength || 32;
+            token = token.toLowerCase();
+            token = dedup(token);
+            token = dropInitialLetters(token);
+            token = dropBafterMAtEnd(token);
+            token = transformCK(token);
+            token = cTransform(token);
+            token = dTransform(token);
+            token = dropG(token);
+            token = transformG(token);
+            token = dropH(token);
+            token = transformPH(token);
+            token = transformQ(token);
+            token = transformS(token);
+            token = transformX(token);
+            token = transformT(token);
+            token = dropT(token);
+            token = transformV(token);
+            token = transformWH(token);
+            token = dropW(token);
+            token = dropY(token);
+            token = transformZ(token);
+            token = dropVowels(token);
+
+            token.toUpperCase();
+            if(token.length >= maxLength) {
+                token = token.substring(0, maxLength);
+            }
+            token = token.toUpperCase();
+
+            return callback?callback(token):token;
+        };
+    };
+
+    NAMESPACE.english.metaphone = NAMESPACE.english.metaphone_make(32);
+
+    return NAMESPACE;
 })(fullproof||{});
 
