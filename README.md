@@ -26,6 +26,27 @@ Fullproof is released under the terms of the Apache License, version 2.0, januar
 * Information can be found in the wiki: https://github.com/reyesr/fullproof/wiki
 * Bug reports and evolution requests can be reported at: https://github.com/reyesr/fullproof/issues
 
+##Building
+
+The `tools` directory contains `build-all.sh` that can be used to create a
+convenient `fullproof-all.js` file containing everything you might need to get
+going on a Fullproof project. Note that in a production system you may want to
+just include specific Javascript files, not everything (see the examples).
+
+To build `fullproof-all.js`:
+
+    $ cd tools
+    $ ./build-all.sh
+
+If you have the Google closure compiler (see
+https://developers.google.com/closure/compiler/) you might prefer to run
+
+    $ cd tools
+    $ CLOSURE_COMPILER_JAR=/path/to/your/compiler.jar ./build-all.sh
+
+All output from the build process will appear in the top-level `build`
+directory.  In particular, see `build/js/fullproof-all.js`.
+
 ##Contribute !
 
 You can help improve fullproof and fulltext research by creating new algorithms:
