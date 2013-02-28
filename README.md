@@ -26,6 +26,21 @@ Fullproof is released under the terms of the Apache License, version 2.0, januar
 * Information can be found in the wiki: https://github.com/reyesr/fullproof/wiki
 * Bug reports and evolution requests can be reported at: https://github.com/reyesr/fullproof/issues
 
+## Examples
+
+The `examples` directory contains several examples and a tutorial. To run the
+examples, you'll need to serve the example HTML and JS from a web server. There
+are a variety of ways you might do this. If you have
+[Twisted](http://twistedmatrix.com) installed, run the following in the top-level
+directory of the Fullproof repository:
+
+    $ twistd -n web --path .
+
+and then visit http://localhost:8080/examples/colors/colors.html to see the
+colors example.  You don't specifically need to use Twisted, any web server will
+do.  Just make sure you make the top-level directory of the repo available to
+the server or the Fullproof JS files will not be found.
+
 ##Building
 
 The `tools` directory contains `build-all.sh` that can be used to create a
