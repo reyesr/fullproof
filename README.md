@@ -32,7 +32,8 @@ There are several examples that can be run online at
 http://reyesr.github.com/fullproof/ (see links at bottom).
 
 If you download the repo, you'll see the `examples` directory contains several
-examples and a tutorial. To run the examples locally, you'll need to serve the
+examples and a tutorial. To run the examples locally, you'll either need to tell
+your browser that it's ok to open local files, or you'll need to serve the
 example HTML and JS from a web server. There are a variety of ways you might do
 this:
 
