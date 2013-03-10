@@ -20,8 +20,8 @@ fullproof.store = fullproof.store || {};
     "use strict";
 
     try {
-        fullproof.store.indexedDB =  window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
-        fullproof.store.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.mozIDBTransaction || window.msIDBTransaction || {};
+        fullproof.store.indexedDB =  indexedDB || window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
+        fullproof.store.IDBTransaction = IDBTransaction || window.IDBTransaction || window.webkitIDBTransaction || window.mozIDBTransaction || window.msIDBTransaction || {};
         fullproof.store.READWRITEMODE  = fullproof.store.IDBTransaction.readwrite || fullproof.store.IDBTransaction.READ_WRITE || "readwrite";
     } catch(e) {
         fullproof.store.indexedDB = window.indexedDB;
