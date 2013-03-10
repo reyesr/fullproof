@@ -402,4 +402,4 @@ fullproof.store = fullproof.store || {};
         return this.stores[name];
     };
 
-})(window || {});
+})(typeof window === 'undefined' ? {} : window);
