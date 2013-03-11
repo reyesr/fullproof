@@ -382,4 +382,4 @@ fullproof.store = fullproof.store||{};
 		});
 	};
 	
-})(window || {});
+})(typeof window === 'undefined' ? {} : window);

@@ -75,11 +75,14 @@ fullproof.ScoredEntry.prototype.toString = function () {
 
 
 /**
- * Creates a synchronization point. This function returns a function that collects
- * calls to callback, then calls its callback argument with all the data collected.
- * The synchronization point can trigger the final call to callback when it either
- * receives a fixed number of calls (expected argument >= 1), or when it
- * receives a false boolean value as argument (expected has to be either undefined or false)
+ * Creates a synchronization point. Return a function that collects
+ * results and calls its callback argument with the collected data.
+ * The synchronization point will trigger the callback when either (a) it
+ * receives a predetermined number of results (expected argument >= 1), or
+ * (b) it receives a false boolean value as argument (expected has to be
+ * either undefined or false).
+
+ * Note that the callback function will never be called more than once.
 
  * @param {function} callback the function to call when the synchronization point is reached
  * @param {number} expected defines the synchronization point. If this is a number, the synchronization is
@@ -90,13 +93,17 @@ fullproof.ScoredEntry.prototype.toString = function () {
 fullproof.make_synchro_point = function (callback, expected, debug, thrown_if_false) {
     var count = 0;
     var results = [];
+    var callbackCalled = false;
     return function (res) {
         if (thrown_if_false !== undefined && res === false) {
             throw thrown_if_false;
         }
         if (expected === false || expected === undefined) {
             if (res === false) {
-                callback(results);
+                if (callbackCalled === false) {
+                    callbackCalled = true;
+                    callback(results);
+                }
             } else {
                 results.push(res);
             }
@@ -108,10 +115,13 @@ fullproof.make_synchro_point = function (callback, expected, debug, thrown_if_fa
                 console.log("synchro point " + (typeof debug == "string" ? debug + ": " : ": ") + count + " / " + expected);
             }
             if (count == expected) {
-                callback(results);
+                if (callbackCalled === false) {
+                    callbackCalled = true;
+                    callback(results);
+                }
             }
         }
-    }
+    };
 };
 
 fullproof.call_new_thread = function() {
