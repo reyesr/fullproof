@@ -11,7 +11,7 @@ fullproof = (function(NAMESPACE) {
 
 	NAMESPACE.ResultSet.prototype.testEquals = function(otherResultSet) {
 		otherResultSet = (otherResultSet instanceof fullproof.ResultSet)?otherResultSet.getDataUnsafe():otherResultSet;
-		
+
 		deepEqual(this.getDataUnsafe(),otherResultSet);
 	};
 
@@ -28,7 +28,7 @@ fullproof = (function(NAMESPACE) {
 		ok(true);
 		QUnit.start();
 	}
-	
+
 	NAMESPACE.tests.mkRandomString = function(size) {
 		var result = "";
 		for (var i=0;i<size; ++i) {
@@ -36,7 +36,7 @@ fullproof = (function(NAMESPACE) {
 		}
 		return result;
 	}
-	
+
 	NAMESPACE.tests.genericComparator = {
 			lower_than: function(a,b) {
 				var vala = a.value?a.value:a;
@@ -50,8 +50,22 @@ fullproof = (function(NAMESPACE) {
 			}
 		};
 
+
+	var problematicWords = [
+			// In Firefox, !!{}['watch'] is true.
+			'watch'
+	];
+
 	NAMESPACE.tests.makeResultSetOfScoredEntries = function(count, maxValue) {
 		var result = new fullproof.ResultSet(NAMESPACE.tests.genericComparator);
+		if (count > problematicWords.length) {
+			for (var i = 0; i < problematicWords.length; i++) {
+				var value = parseInt(Math.random() * maxValue);
+				result.insert(new NAMESPACE.ScoredEntry(
+						problematicWords[i], value, Math.random()*2));
+				count--;
+			}
+		}
 		for (var i=0; i<count; ++i) {
 			result.insert(NAMESPACE.ScoredEntry.prototype.mkRandom(maxValue));
 		}
@@ -68,13 +82,13 @@ fullproof = (function(NAMESPACE) {
 					intvalue: parseInt(Math.random()*1000)
 //					value: parseInt(Math.random()*100)
 			};
-			
+
 			result.insert(new NAMESPACE.ScoredEntry(NAMESPACE.tests.mkRandomString(10), obh, Math.random()*20));
 		}
 		return result;
 	};
 
-	
+
 	NAMESPACE.tests.testScoredElement = function(se1,se2) {
 		deepEqual(se1.value, se2.value);
 		equal(se1.score, se2.score);

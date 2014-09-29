@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 var fullproof = fullproof || {};
 fullproof.store = fullproof.store||{};
 
@@ -25,13 +25,13 @@ fullproof.store = fullproof.store||{};
 		this.comparatorObject = null;
 		this.useScore= false;
 	}
-	
+
 	fullproof.store.MemoryStore = function() {
-		
+
 		if (!(this instanceof fullproof.store.MemoryStore)) {
 			return new fullproof.store.MemoryStore(comparatorObject);
-		}		
-		
+		}
+
 		this.indexes = {};
 		return this;
 	};
@@ -78,17 +78,17 @@ fullproof.store = fullproof.store||{};
 			}
 		});
 	};
-	
+
 	fullproof.store.MemoryStore.prototype.getIndex = function(name) {
 		return this.indexes[name];
 	};
 
-	
+
 	fullproof.store.MemoryStore.prototype.close = function(callback) {
 		this.indexes = {};
 		callback(this);
 	};
-	
+
 	MemoryStoreIndex.prototype.clear = function (callback) {
         this.data = {};
         if (callback) {
@@ -96,18 +96,18 @@ fullproof.store = fullproof.store||{};
         }
         return this;
     };
-	
+
 	/**
 	 * Inject data. Can be called as follows:
 	 * memstoreInstance.inject("someword", 31321321, callbackWhenDone);
 	 * memstoreInstance.inject("someword", new fullproof.ScoredElement(31321321, 1.0), callbackWhenDone);
-	 * 
+	 *
 	 * When score is not set, and store is configured to store a score, then it is saved as undefined.
 	 * When the score is set, and the store is configured not to store a score, it raises an exception
 	 */
 
 	MemoryStoreIndex.prototype.inject = function(key, value, callback) {
-		if (!this.data[key]) {
+		if (!this.data.hasOwnProperty(key)) {
 			this.data[key] = new fullproof.ResultSet(this.comparatorObject);
 		}
 		if (this.useScore === false && value instanceof fullproof.ScoredElement) {
@@ -119,7 +119,7 @@ fullproof.store = fullproof.store||{};
 		if (callback) {
 			callback(key,value);
 		}
-		
+
 		return this;
 	};
 
@@ -137,7 +137,7 @@ fullproof.store = fullproof.store||{};
 		return this;
 	};
 
-	
+
 	MemoryStoreIndex.prototype.lookup = function(word, callback) {
 		callback(this.data[word]?this.data[word].clone():new fullproof.ResultSet);
 		return this;
